@@ -42,7 +42,7 @@ const PORTAIS = [
   { value: "bbmnet", label: "BBMNet" },
 ];
 
-export function HomePage() {
+export function BuscarPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<

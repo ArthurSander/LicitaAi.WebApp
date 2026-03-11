@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Header } from '../components/Header';
-import { Search, CalendarIcon, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { AlertTriangle, Search, CalendarIcon, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
   Select,
@@ -26,7 +26,7 @@ import {
 } from '../components/ui/dialog';
 import { Checkbox } from '../components/ui/checkbox';
 import { AdvancedSearchDialog } from '../components/AdvancedSearchDialog';
-import { LicitacaoFilterData, defaultLicitacaoFilterData } from '../../models/LicitacaoFilterData';
+import { LicitacaoFilterData } from '../../models/LicitacaoFilterData';
 import { Portal } from '../../types/BuscaLicitacoes/Portal';
 import { usePortals } from '../hooks/usePortals';
 import { useEstados } from '../hooks/useEstados';
@@ -34,7 +34,7 @@ import { useCidades } from '../hooks/useCidades';
 import { useModalidades } from '../hooks/useModalidades';
 import { useSearchFilters } from '../context/SearchFiltersContext';
 
-export function HomePage() {
+export function BuscarPage() {
   const navigate = useNavigate();
 
   const { portals } = usePortals();
@@ -51,6 +51,15 @@ export function HomePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
 
+  const isAdvancedKeywordSearchActive =
+    filterData.IncludeKeywords.length > 1 || filterData.ExcludeKeywords.length > 0;
+
+  useEffect(() => {
+    if (isAdvancedKeywordSearchActive) return;
+    const next = filterData.IncludeKeywords[0] ?? '';
+    setSearchQuery(next);
+  }, [filterData.IncludeKeywords, isAdvancedKeywordSearchActive]);
+
   const isCustomOpeningDate = filterData.OpeningDateFilter === 'custom-period';
 
   // Helper to convert filter dates to DateRange for the calendar
@@ -63,6 +72,16 @@ export function HomePage() {
       : undefined;
 
   const handleSearch = () => {
+    if (!isAdvancedKeywordSearchActive) {
+      const trimmed = searchQuery.trim();
+      setFilterData((prev) => {
+        return {
+          ...prev,
+          IncludeKeywords: trimmed ? [trimmed] : [],
+        };
+      });
+    }
+
     navigate('/resultados');
   };
 
@@ -149,15 +168,25 @@ export function HomePage() {
           {/* Search Input */}
           <div className="max-w-3xl mx-auto mb-3">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF] dark:text-[#6B7280]" />
-              <input
-                type="text"
-                placeholder="Buscar por palavras-chave, CNPJ, órgão..."
-                className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-[15px] text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
+              {isAdvancedKeywordSearchActive ? (
+                <AlertTriangle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#D97706] dark:text-[#FBBF24]" />
+              ) : (
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF] dark:text-[#6B7280]" />
+              )}
+              {isAdvancedKeywordSearchActive ? (
+                <div className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-[15px] text-[#6B7280] dark:text-[#9CA3AF]">
+                  Busca avançada ativa.
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Buscar por palavras-chave, CNPJ, órgão..."
+                  className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-[15px] text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              )}
             </div>
           </div>
 

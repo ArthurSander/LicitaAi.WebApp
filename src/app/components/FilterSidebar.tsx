@@ -12,7 +12,7 @@ import { Switch } from './ui/switch';
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
-import { CalendarIcon, Search, ChevronDown, X, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, CalendarIcon, Search, ChevronDown, X, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
@@ -50,8 +50,18 @@ export function FilterSidebar({
   // UI-only state
   const [portaisOpen, setPortaisOpen] = useState(false);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const isAdvancedKeywordSearchActive =
+    filterData.IncludeKeywords.length > 1 || filterData.ExcludeKeywords.length > 0;
 
   const isCustomOpeningDate = filterData.OpeningDateFilter === 'custom-period';
+
+  useEffect(() => {
+    if (isAdvancedKeywordSearchActive) return;
+    const next = filterData.IncludeKeywords[0] ?? '';
+    setSearchQuery(next);
+  }, [filterData.IncludeKeywords, isAdvancedKeywordSearchActive]);
 
   // Helper to convert filter dates to DateRange for the calendar
   const dateRange: DateRange | undefined =
@@ -157,6 +167,17 @@ export function FilterSidebar({
     });
   }, [cidades]);
 
+  const handleHeroSearch = () => {
+    if (isAdvancedKeywordSearchActive) return;
+    const trimmed = searchQuery.trim();
+    setFilterData((prev) => {
+      return {
+        ...prev,
+        IncludeKeywords: trimmed ? [trimmed] : [],
+      };
+    });
+  };
+
   return (
     <aside className="w-[280px] shrink-0 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 hide-scrollbar">
       <div className="space-y-6">
@@ -164,12 +185,26 @@ export function FilterSidebar({
         <div className="space-y-3">
           <Label className="text-sm text-[#111827] dark:text-[#F7F8FA]">Buscar</Label>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] dark:text-[#6B7280]" />
-            <input
-              type="text"
-              placeholder="Palavras-chave, CNPJ, órgão..."
-              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
-            />
+            {isAdvancedKeywordSearchActive ? (
+              <AlertTriangle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D97706] dark:text-[#FBBF24]" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] dark:text-[#6B7280]" />
+            )}
+
+            {isAdvancedKeywordSearchActive ? (
+              <div className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+                Busca avançada ativa.
+              </div>
+            ) : (
+              <input
+                type="text"
+                placeholder="Palavras-chave, CNPJ, órgão..."
+                className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleHeroSearch()}
+              />
+            )}
           </div>
           <Button
             variant="outline"
@@ -184,6 +219,7 @@ export function FilterSidebar({
           
           <Button
             className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white"
+            onClick={handleHeroSearch}
           >
             <Search className="mr-2 h-4 w-4" />
             Buscar
