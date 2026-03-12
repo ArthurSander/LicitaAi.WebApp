@@ -39,6 +39,8 @@ Set these GitHub repository secrets so CI/CD can deploy and inject app env value
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
+If you are using GitHub Environments, create them in environment `prod` (the workflow jobs use `environment: prod`).
+
 Notes:
 
 - `VITE_*` variables are public by design in Vite and are embedded at build time.
