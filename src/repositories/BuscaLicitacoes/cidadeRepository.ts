@@ -1,5 +1,5 @@
 import { Cidade } from "../../types/BuscaLicitacoes/Cidade";
 
 export interface CidadeRepository {
-    getAll(codigoEstados?: string[]): Promise<Cidade[]>
+    getAll(codigoEstados: string[]): Promise<Cidade[]>
 }

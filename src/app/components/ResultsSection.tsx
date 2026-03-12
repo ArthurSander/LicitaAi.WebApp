@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { OpportunityCard } from './OpportunityCard';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { LicitacaoFilterData } from '../../models/LicitacaoFilterData';
@@ -34,22 +34,43 @@ function formatBRL(value: number | undefined) {
 export function ResultsSection({
   filterData,
   setFilterData,
+  searchFilterData,
 }: {
   filterData: LicitacaoFilterData;
   setFilterData: Dispatch<SetStateAction<LicitacaoFilterData>>;
+  searchFilterData?: LicitacaoFilterData;
 }) {
   const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [orderBy, setOrderBy] = useState<'recent' | 'value-high' | 'value-low' | 'closing'>('recent');
 
   const { estados } = useEstados();
   const { cidades } = useCidades(filterData.StateCodes);
   const { modalidades } = useModalidades();
+  const effectiveSearchFilter = searchFilterData ?? filterData;
 
   const { items, totalCount, isLoading } = useLicitacoes({
-    filter: filterData,
-    page: 1,
-    pageSize: 20,
+    filter: effectiveSearchFilter,
+    page,
+    pageSize,
+    orderBy,
   });
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  useEffect(() => {
+    setPage(1);
+  }, [effectiveSearchFilter]);
+
+  useEffect(() => {
+    setPage((prev) => Math.min(prev, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [orderBy]);
 
   const activeFilterBadges = useMemo(() => {
     const badges: Array<{ key: string; label: string; onRemove: () => void }> = [];
@@ -206,17 +227,39 @@ export function ResultsSection({
               ? 'Carregando oportunidades...'
               : `${totalCount.toLocaleString('pt-BR')} oportunidades encontradas`}
           </h2>
-          <Select defaultValue="recent">
-            <SelectTrigger className="w-[180px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Mais recentes</SelectItem>
-              <SelectItem value="value-high">Maior valor</SelectItem>
-              <SelectItem value="value-low">Menor valor</SelectItem>
-              <SelectItem value="closing">Encerrando em breve</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3">
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                const next = Number(value);
+                if (!Number.isFinite(next)) return;
+                setPageSize(next);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[200px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
+                <SelectValue placeholder="Itens por página" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 por página</SelectItem>
+                <SelectItem value="25">25 por página</SelectItem>
+                <SelectItem value="50">50 por página</SelectItem>
+                <SelectItem value="100">100 por página</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={orderBy} onValueChange={(value) => setOrderBy(value as typeof orderBy)}>
+              <SelectTrigger className="w-[180px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Mais recentes</SelectItem>
+                <SelectItem value="value-high">Maior valor</SelectItem>
+                <SelectItem value="value-low">Menor valor</SelectItem>
+                <SelectItem value="closing">Encerrando em breve</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Active filters */}
@@ -273,6 +316,28 @@ export function ResultsSection({
             }}
           />
         ))}
+      </div>
+
+      <div className="mt-6 flex items-center justify-between gap-4">
+        <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+          Página {page} de {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            disabled={page <= 1 || isLoading}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            disabled={page >= totalPages || isLoading}
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          >
+            Próxima
+          </Button>
+        </div>
       </div>
 
       {selectedLicitacao && (

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Cidade } from "../../types/BuscaLicitacoes/Cidade";
 import { useCidadeRepository } from "../context/RepositoriesContext";
 
-export function useCidades(codigoEstados?: string[]) {
+export function useCidades(codigoEstados: string[]) {
   const cidadeRepository = useCidadeRepository();
   const [cidades, setCidades] = useState<Cidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);

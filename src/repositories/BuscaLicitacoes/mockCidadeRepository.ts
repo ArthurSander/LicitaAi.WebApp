@@ -22,13 +22,15 @@ const mockCidades: Cidade[] = [
 
 export class MockCidadeRepository implements CidadeRepository {
 
-    async getAll(codigoEstados?: string[]): Promise<Cidade[]> {
+    async getAll(codigoEstados: string[]): Promise<Cidade[]> {
         // simula latência de API
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Base mock returns all records; use EstadoFilteredCidadeRepository
-        // if you want filtering by selected estados.
-        return mockCidades;
+        if (codigoEstados.length === 0) {
+            return [];
+        }
+
+        return mockCidades.filter((cidade) => codigoEstados.includes(cidade.codigoEstado));
     }
 
 }

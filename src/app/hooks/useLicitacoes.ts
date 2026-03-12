@@ -7,6 +7,7 @@ export function useLicitacoes(params: {
   filter: LicitacaoFilterData;
   page: number;
   pageSize: number;
+  orderBy?: "recent" | "value-high" | "value-low" | "closing";
 }) {
   const licitacaoRepository = useLicitacaoRepository();
 
@@ -27,6 +28,7 @@ export function useLicitacoes(params: {
           filter: params.filter,
           page: params.page,
           pageSize: params.pageSize,
+          orderBy: params.orderBy,
         });
 
         if (!canceled) {
@@ -47,7 +49,7 @@ export function useLicitacoes(params: {
     return () => {
       canceled = true;
     };
-  }, [licitacaoRepository, params.filter, params.page, params.pageSize]);
+  }, [licitacaoRepository, params.filter, params.page, params.pageSize, params.orderBy]);
 
   return { items, totalCount, isLoading, error };
 }

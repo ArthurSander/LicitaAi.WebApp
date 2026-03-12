@@ -13,7 +13,7 @@ import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { AlertTriangle, CalendarIcon, Search, ChevronDown, X, SlidersHorizontal } from 'lucide-react';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -28,9 +28,11 @@ import { useModalidades } from '../hooks/useModalidades';
 export function FilterSidebar({
   filterData: controlledFilterData,
   setFilterData: controlledSetFilterData,
+  onSearch,
 }: {
   filterData?: LicitacaoFilterData;
   setFilterData?: Dispatch<SetStateAction<LicitacaoFilterData>>;
+  onSearch?: (nextFilterData?: LicitacaoFilterData) => void;
 } = {}) {
   const { portals } = usePortals();
   const { estados } = useEstados();
@@ -51,6 +53,26 @@ export function FilterSidebar({
   const [portaisOpen, setPortaisOpen] = useState(false);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [estadoSearchQuery, setEstadoSearchQuery] = useState('');
+  const [cidadeSearchQuery, setCidadeSearchQuery] = useState('');
+
+  const hasSelectedStates = filterData.StateCodes.length > 0;
+
+  const filteredEstados = useMemo(() => {
+    const query = estadoSearchQuery.trim().toLowerCase();
+    if (!query) return estados;
+    return estados.filter(
+      (estado) =>
+        estado.nome.toLowerCase().includes(query) ||
+        estado.codigo.toLowerCase().includes(query),
+    );
+  }, [estados, estadoSearchQuery]);
+
+  const filteredCidades = useMemo(() => {
+    const query = cidadeSearchQuery.trim().toLowerCase();
+    if (!query) return cidades;
+    return cidades.filter((cidade) => cidade.nome.toLowerCase().includes(query));
+  }, [cidades, cidadeSearchQuery]);
 
   const isAdvancedKeywordSearchActive =
     filterData.IncludeKeywords.length > 1 || filterData.ExcludeKeywords.length > 0;
@@ -167,15 +189,24 @@ export function FilterSidebar({
     });
   }, [cidades]);
 
+  useEffect(() => {
+    if (hasSelectedStates) return;
+    setCidadeSearchQuery('');
+  }, [hasSelectedStates]);
+
   const handleHeroSearch = () => {
-    if (isAdvancedKeywordSearchActive) return;
+    if (isAdvancedKeywordSearchActive) {
+      onSearch?.(filterData);
+      return;
+    }
+
     const trimmed = searchQuery.trim();
-    setFilterData((prev) => {
-      return {
-        ...prev,
-        IncludeKeywords: trimmed ? [trimmed] : [],
-      };
-    });
+    const nextFilterData = {
+      ...filterData,
+      IncludeKeywords: trimmed ? [trimmed] : [],
+    };
+    setFilterData(nextFilterData);
+    onSearch?.(nextFilterData);
   };
 
   return (
@@ -347,7 +378,14 @@ export function FilterSidebar({
               align="start"
             >
               <div className="space-y-3">
-                {estados.map((estado) => (
+                <input
+                  type="text"
+                  placeholder="Filtrar estados..."
+                  className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                  value={estadoSearchQuery}
+                  onChange={(e) => setEstadoSearchQuery(e.target.value)}
+                />
+                {filteredEstados.map((estado) => (
                   <div key={estado.codigo} className="flex items-center space-x-2">
                     <Checkbox
                       id={`sidebar-estado-${estado.codigo}`}
@@ -374,10 +412,13 @@ export function FilterSidebar({
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-between text-left font-normal bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F]"
+                disabled={!hasSelectedStates}
+                className="w-full justify-between text-left font-normal bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span className="text-sm text-[#111827] dark:text-[#F7F8FA] truncate">
-                  {filterData.CityIds.length === 0
+                  {!hasSelectedStates
+                    ? 'Selecione ao menos um estado'
+                    : filterData.CityIds.length === 0
                     ? 'Selecione as cidades'
                     : cidades.length > 0 && filterData.CityIds.length === cidades.length
                     ? 'Todas as cidades'
@@ -391,21 +432,36 @@ export function FilterSidebar({
               align="start"
             >
               <div className="space-y-3">
-                {cidades.map((cidade) => (
-                  <div key={cidade.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`sidebar-cidade-${cidade.id}`}
-                      checked={filterData.CityIds.includes(cidade.id)}
-                      onCheckedChange={() => toggleCityId(cidade.id)}
+                {!hasSelectedStates ? (
+                  <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+                    Selecione pelo menos um estado para habilitar cidades.
+                  </p>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Filtrar cidades..."
+                      className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                      value={cidadeSearchQuery}
+                      onChange={(e) => setCidadeSearchQuery(e.target.value)}
                     />
-                    <label
-                      htmlFor={`sidebar-cidade-${cidade.id}`}
-                      className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {cidade.nome}
-                    </label>
-                  </div>
-                ))}
+                    {filteredCidades.map((cidade) => (
+                      <div key={cidade.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sidebar-cidade-${cidade.id}`}
+                          checked={filterData.CityIds.includes(cidade.id)}
+                          onCheckedChange={() => toggleCityId(cidade.id)}
+                        />
+                        <label
+                          htmlFor={`sidebar-cidade-${cidade.id}`}
+                          className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {cidade.nome}
+                        </label>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -505,6 +561,7 @@ export function FilterSidebar({
         <div className="border-t border-[#E6E8EC] dark:border-[#1F1F1F] pt-6">
           <Button
             className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white"
+            onClick={handleHeroSearch}
           >
             <Search className="mr-2 h-4 w-4" />
             Buscar
@@ -518,6 +575,7 @@ export function FilterSidebar({
           portais={portals}
           filterData={filterData}
           setFilterData={setFilterData}
+          onSubmit={() => onSearch?.(filterData)}
         />
       </div>
     </aside>

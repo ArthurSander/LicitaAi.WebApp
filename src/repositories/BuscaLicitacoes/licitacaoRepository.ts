@@ -6,6 +6,7 @@ export type SearchLicitacoesParams = {
     filter: LicitacaoFilterData
     page: number
     pageSize: number
+    orderBy?: "recent" | "value-high" | "value-low" | "closing"
 }
 
 export type SearchLicitacoesResult = {

@@ -28,7 +28,7 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LicitacaoFilterData } from "../../models/LicitacaoFilterData";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Portal } from "../../types/BuscaLicitacoes/Portal";
 import { useEstados } from "../hooks/useEstados";
 import { useCidades } from "../hooks/useCidades";
@@ -56,6 +56,25 @@ export function AdvancedSearchDialog({
   const { estados } = useEstados();
   const { cidades } = useCidades(filterData.StateCodes);
   const { modalidades } = useModalidades();
+  const [estadoSearchQuery, setEstadoSearchQuery] = useState("");
+  const [cidadeSearchQuery, setCidadeSearchQuery] = useState("");
+  const hasSelectedStates = filterData.StateCodes.length > 0;
+
+  const filteredEstados = useMemo(() => {
+    const query = estadoSearchQuery.trim().toLowerCase();
+    if (!query) return estados;
+    return estados.filter(
+      (estado) =>
+        estado.nome.toLowerCase().includes(query) ||
+        estado.codigo.toLowerCase().includes(query),
+    );
+  }, [estados, estadoSearchQuery]);
+
+  const filteredCidades = useMemo(() => {
+    const query = cidadeSearchQuery.trim().toLowerCase();
+    if (!query) return cidades;
+    return cidades.filter((cidade) => cidade.nome.toLowerCase().includes(query));
+  }, [cidades, cidadeSearchQuery]);
 
   // Local UI state for input fields
   const [currentIncludeInput, setCurrentIncludeInput] = useState("");
@@ -193,6 +212,11 @@ export function AdvancedSearchDialog({
       };
     });
   }, [cidades, setFilterData]);
+
+  useEffect(() => {
+    if (hasSelectedStates) return;
+    setCidadeSearchQuery("");
+  }, [hasSelectedStates]);
 
   useEffect(() => {
     setFilterData((prev) => {
@@ -443,7 +467,14 @@ export function AdvancedSearchDialog({
                 align="start"
               >
                 <div className="space-y-3">
-                  {estados.map((estado) => (
+                  <Input
+                    type="text"
+                    placeholder="Filtrar estados..."
+                    value={estadoSearchQuery}
+                    onChange={(e) => setEstadoSearchQuery(e.target.value)}
+                    className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
+                  />
+                  {filteredEstados.map((estado) => (
                     <div key={estado.codigo} className="flex items-center space-x-2">
                       <Checkbox
                         id={`${idPrefix}-estado-${estado.codigo}`}
@@ -472,10 +503,13 @@ export function AdvancedSearchDialog({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-between text-left font-normal bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F]"
+                  disabled={!hasSelectedStates}
+                  className="w-full justify-between text-left font-normal bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <span className="text-sm text-[#111827] dark:text-[#F7F8FA] truncate">
-                    {filterData.CityIds.length === 0
+                    {!hasSelectedStates
+                      ? "Selecione ao menos um estado"
+                      : filterData.CityIds.length === 0
                       ? 'Selecione as cidades'
                       : cidades.length > 0 && filterData.CityIds.length === cidades.length
                       ? 'Todas as cidades'
@@ -489,21 +523,36 @@ export function AdvancedSearchDialog({
                 align="start"
               >
                 <div className="space-y-3">
-                  {cidades.map((cidade) => (
-                    <div key={cidade.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`${idPrefix}-cidade-${cidade.id}`}
-                        checked={filterData.CityIds.includes(cidade.id)}
-                        onCheckedChange={() => toggleCityId(cidade.id)}
+                  {!hasSelectedStates ? (
+                    <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+                      Selecione pelo menos um estado para habilitar cidades.
+                    </p>
+                  ) : (
+                    <>
+                      <Input
+                        type="text"
+                        placeholder="Filtrar cidades..."
+                        value={cidadeSearchQuery}
+                        onChange={(e) => setCidadeSearchQuery(e.target.value)}
+                        className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
                       />
-                      <label
-                        htmlFor={`${idPrefix}-cidade-${cidade.id}`}
-                        className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {cidade.nome}
-                      </label>
-                    </div>
-                  ))}
+                      {filteredCidades.map((cidade) => (
+                        <div key={cidade.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${idPrefix}-cidade-${cidade.id}`}
+                            checked={filterData.CityIds.includes(cidade.id)}
+                            onCheckedChange={() => toggleCityId(cidade.id)}
+                          />
+                          <label
+                            htmlFor={`${idPrefix}-cidade-${cidade.id}`}
+                            className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {cidade.nome}
+                          </label>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>

@@ -134,7 +134,7 @@ export class MockLicitacaoRepository implements LicitacaoRepository {
   async search(params: SearchLicitacoesParams): Promise<SearchLicitacoesResult> {
     await sleep(300);
 
-    const { filter, page, pageSize } = params;
+    const { filter, page, pageSize, orderBy = "recent" } = params;
     const now = new Date();
 
     let results = [...mockLicitacoes];
@@ -216,6 +216,26 @@ export class MockLicitacaoRepository implements LicitacaoRepository {
       }
       case "any":
       default:
+        break;
+    }
+
+    // Sorting must happen before pagination.
+    switch (orderBy) {
+      case "value-high":
+        results.sort((a, b) => (b.valorEstimado ?? 0) - (a.valorEstimado ?? 0));
+        break;
+      case "value-low":
+        results.sort((a, b) => (a.valorEstimado ?? 0) - (b.valorEstimado ?? 0));
+        break;
+      case "closing":
+        results.sort(
+          (a, b) =>
+            a.dataAberturaProposta.getTime() - b.dataAberturaProposta.getTime(),
+        );
+        break;
+      case "recent":
+      default:
+        results.sort((a, b) => b.dataPublicacao.getTime() - a.dataPublicacao.getTime());
         break;
     }
 

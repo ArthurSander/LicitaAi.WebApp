@@ -8,11 +8,11 @@ import type { Cidade } from "../../types/BuscaLicitacoes/Cidade";
 export class EstadoFilteredCidadeRepository implements CidadeRepository {
   constructor(private readonly inner: CidadeRepository) {}
 
-  async getAll(codigoEstados?: string[]): Promise<Cidade[]> {
-    const all = await this.inner.getAll();
+  async getAll(codigoEstados: string[]): Promise<Cidade[]> {
+    const all = await this.inner.getAll(codigoEstados);
 
-    if (!codigoEstados || codigoEstados.length === 0) {
-      return all;
+    if (codigoEstados.length === 0) {
+      return [];
     }
 
     return all.filter((c) => codigoEstados.includes(c.codigoEstado));
