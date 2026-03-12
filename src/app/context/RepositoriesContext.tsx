@@ -11,6 +11,10 @@ import type { ModalidadeRepository } from "../../repositories/BuscaLicitacoes/mo
 import { MockModalidadeRepository } from "../../repositories/BuscaLicitacoes/mockModalidadeRepository";
 import type { LicitacaoRepository } from "../../repositories/BuscaLicitacoes/licitacaoRepository";
 import { MockLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockLicitacaoRepository";
+import type { ItemLicitacaoRepository } from "../../repositories/BuscaLicitacoes/itemLicitacaoRepository";
+import { MockItemLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockItemLicitacaoRepository";
+import type { ArquivoLicitacaoRepository } from "../../repositories/BuscaLicitacoes/arquivoLicitacaoRepository";
+import { MockArquivoLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockArquivoLicitacaoRepository";
 import type { AuthRepository } from "../../repositories/Auth/authRepository";
 import { SupabaseAuthRepository } from "../../repositories/Auth/supabaseAuthRepository";
 
@@ -20,6 +24,8 @@ export type Repositories = {
   cidadeRepository: CidadeRepository;
   modalidadeRepository: ModalidadeRepository;
   licitacaoRepository: LicitacaoRepository;
+  itemLicitacaoRepository: ItemLicitacaoRepository;
+  arquivoLicitacaoRepository: ArquivoLicitacaoRepository;
   authRepository: AuthRepository;
 };
 
@@ -45,6 +51,12 @@ export function RepositoriesProvider({
       licitacaoRepository:
         repositoriesOverride?.licitacaoRepository ??
         new MockLicitacaoRepository(),
+      itemLicitacaoRepository:
+        repositoriesOverride?.itemLicitacaoRepository ??
+        new MockItemLicitacaoRepository(),
+      arquivoLicitacaoRepository:
+        repositoriesOverride?.arquivoLicitacaoRepository ??
+        new MockArquivoLicitacaoRepository(),
       authRepository:
         repositoriesOverride?.authRepository ??
         new SupabaseAuthRepository(),
@@ -84,6 +96,14 @@ export function useModalidadeRepository(): ModalidadeRepository {
 
 export function useLicitacaoRepository(): LicitacaoRepository {
   return useRepositories().licitacaoRepository;
+}
+
+export function useItemLicitacaoRepository(): ItemLicitacaoRepository {
+  return useRepositories().itemLicitacaoRepository;
+}
+
+export function useArquivoLicitacaoRepository(): ArquivoLicitacaoRepository {
+  return useRepositories().arquivoLicitacaoRepository;
 }
 
 export function useAuthRepository(): AuthRepository {

@@ -2,6 +2,7 @@ import { Cidade } from "./Cidade"
 import { Modalidade } from "./Modalidade"
 import { Estado } from "./Estado"
 import { Portal } from "./Portal"
+import { ModoDisputa } from "./ModoDisputa"
 
 export type Licitacao = {
     id: string
@@ -14,7 +15,7 @@ export type Licitacao = {
     dataAberturaProposta: Date
     portal: Portal
     valorEstimado?: number
-    status?: "open" | "warning" | "closed"
+    modoDisputa?: ModoDisputa
     linkDownloadEdital: string
     linkSiteEdital: string
 }

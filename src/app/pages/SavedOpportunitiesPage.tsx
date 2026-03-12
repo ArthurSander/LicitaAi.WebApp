@@ -10,6 +10,9 @@ import {
 } from '../components/ui/select';
 import { OpportunityCard } from '../components/OpportunityCard';
 import { X, Bookmark } from 'lucide-react';
+import { useState } from 'react';
+import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
+import { OpportunityModal } from '../components/OpportunityModal';
 
 const mockSavedOpportunities = [
   {
@@ -22,7 +25,7 @@ const mockSavedOpportunities = [
     estimatedValue: 'R$ 245.000,00',
     openingDate: '18 mar 2026',
     publishDate: '06 mar 2026',
-    status: 'open' as const,
+    modoDisputa: 'aberto' as const,
   },
   {
     id: 3,
@@ -34,7 +37,7 @@ const mockSavedOpportunities = [
     estimatedValue: 'R$ 89.500,00',
     openingDate: '22 mar 2026',
     publishDate: '06 mar 2026',
-    status: 'open' as const,
+    modoDisputa: 'aberto' as const,
   },
   {
     id: 5,
@@ -46,11 +49,14 @@ const mockSavedOpportunities = [
     estimatedValue: 'R$ 1.200.000,00',
     openingDate: '15 mar 2026',
     publishDate: '01 mar 2026',
-    status: 'warning' as const,
+    modoDisputa: 'aberto-fechado' as const,
   },
 ];
 
 export function SavedOpportunitiesPage() {
+  const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen">
       {/* Header Navigation */}
@@ -97,7 +103,37 @@ export function SavedOpportunitiesPage() {
           {mockSavedOpportunities.length > 0 ? (
             <div className="space-y-4">
               {mockSavedOpportunities.map((opportunity) => (
-                <OpportunityCard key={opportunity.id} {...opportunity} />
+                <OpportunityCard
+                  key={opportunity.id}
+                  {...opportunity}
+                  onOpenDetails={() => {
+                    const licitacao: Licitacao = {
+                      id: String(opportunity.id),
+                      objeto: opportunity.title,
+                      orgao: opportunity.organization,
+                      cidade: {
+                        id: `${opportunity.state}-${opportunity.city}`,
+                        nome: opportunity.city,
+                        codigoEstado: opportunity.state,
+                      },
+                      estado: { codigo: opportunity.state, nome: opportunity.state },
+                      modalidade: {
+                        codigo: opportunity.modality.toLowerCase().replace(/\s+/g, '-'),
+                        nome: opportunity.modality,
+                      },
+                      dataPublicacao: new Date(2026, 2, 1),
+                      dataAberturaProposta: new Date(2026, 2, 15),
+                      portal: { id: 'saved', nome: 'Salvas' },
+                      valorEstimado: undefined,
+                      modoDisputa: opportunity.modoDisputa,
+                      linkDownloadEdital: '#',
+                      linkSiteEdital: '#',
+                    };
+
+                    setSelectedLicitacao(licitacao);
+                    setIsModalOpen(true);
+                  }}
+                />
               ))}
             </div>
           ) : (
@@ -110,6 +146,14 @@ export function SavedOpportunitiesPage() {
                 Comece a salvar licitações para acompanhá-las mais facilmente
               </p>
             </div>
+          )}
+
+          {selectedLicitacao && (
+            <OpportunityModal
+              open={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              licitacao={selectedLicitacao}
+            />
           )}
         </div>
       </div>

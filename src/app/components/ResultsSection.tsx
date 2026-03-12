@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { OpportunityCard } from './OpportunityCard';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { LicitacaoFilterData } from '../../models/LicitacaoFilterData';
@@ -19,6 +19,8 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useEstados } from '../hooks/useEstados';
 import { useCidades } from '../hooks/useCidades';
 import { useModalidades } from '../hooks/useModalidades';
+import { OpportunityModal } from './OpportunityModal';
+import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
 
 function formatBRL(value: number | undefined) {
   if (value == null) return '—';
@@ -36,6 +38,9 @@ export function ResultsSection({
   filterData: LicitacaoFilterData;
   setFilterData: Dispatch<SetStateAction<LicitacaoFilterData>>;
 }) {
+  const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { estados } = useEstados();
   const { cidades } = useCidades(filterData.StateCodes);
   const { modalidades } = useModalidades();
@@ -261,10 +266,22 @@ export function ResultsSection({
             estimatedValue={formatBRL(licitacao.valorEstimado)}
             openingDate={format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })}
             publishDate={format(licitacao.dataPublicacao, 'dd MMM yyyy', { locale: ptBR })}
-            status={licitacao.status ?? 'open'}
+            modoDisputa={licitacao.modoDisputa ?? 'aberto'}
+            onOpenDetails={() => {
+              setSelectedLicitacao(licitacao);
+              setIsModalOpen(true);
+            }}
           />
         ))}
       </div>
+
+      {selectedLicitacao && (
+        <OpportunityModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          licitacao={selectedLicitacao}
+        />
+      )}
     </div>
   );
 }
