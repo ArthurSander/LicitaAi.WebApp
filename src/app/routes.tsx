@@ -7,6 +7,13 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { supabase } from '../lib/supabaseClient';
 
+function isInvalidRefreshTokenError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const maybeMessage = 'message' in error ? (error as { message?: unknown }).message : undefined;
+  const message = typeof maybeMessage === 'string' ? maybeMessage.toLowerCase() : '';
+  return message.includes('invalid refresh token') || message.includes('refresh token not found');
+}
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -15,8 +22,11 @@ export const router = createBrowserRouter([
   {
     path: '/',
     loader: async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data.user) {
+      const { data, error } = await supabase.auth.getSession();
+      if (error && isInvalidRefreshTokenError(error)) {
+        await supabase.auth.signOut({ scope: 'local' });
+      }
+      if (error || !data.session?.user) {
         throw redirect('/login');
       }
       return null;

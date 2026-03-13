@@ -89,10 +89,8 @@ function toStringOrFallback(value: unknown, fallback: string): string {
   return fallback;
 }
 
-function toIntOrNull(value: string | undefined): number | null {
-  if (!value) return null;
-  const parsed = Number(value);
-  return Number.isInteger(parsed) ? parsed : null;
+function toStringOrEmpty(value: string | undefined): string {
+  return value?.trim() ?? "";
 }
 
 function mapSearchItem(raw: unknown): Licitacao | null {
@@ -151,7 +149,7 @@ export class LicitaAiLicitacaoRepository implements LicitacaoRepository {
         openingDateFilter: openingDateFilterMap[params.filter.OpeningDateFilter],
         openingDateStart: toIsoOrNull(params.filter.OpeningDateStart),
         openingDateEnd: toIsoOrNull(params.filter.OpeningDateEnd),
-        modalityId: toIntOrNull(params.filter.ModalityId),
+        modalityId: toStringOrEmpty(params.filter.ModalityId),
         orderBy: orderByMap[orderBy],
         stateCodes: params.filter.StateCodes,
         cityIds: params.filter.CityIds,

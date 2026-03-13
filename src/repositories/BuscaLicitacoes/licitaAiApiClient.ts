@@ -11,6 +11,20 @@ function normalizeBaseUrl(value: string) {
 
 let lastApiErrorToastAt = 0;
 
+function isInvalidRefreshTokenError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeMessage = "message" in error ? (error as { message?: unknown }).message : undefined;
+  const message = typeof maybeMessage === "string" ? maybeMessage.toLowerCase() : "";
+  return (
+    message.includes("invalid refresh token") ||
+    message.includes("refresh token not found")
+  );
+}
+
+async function clearLocalSession(): Promise<void> {
+  await supabase.auth.signOut({ scope: "local" });
+}
+
 function notifyApiError(status?: number) {
   if (typeof window === "undefined") return;
   const now = Date.now();
@@ -29,6 +43,9 @@ async function getAccessToken(options?: { forceRefresh?: boolean }): Promise<str
   if (options?.forceRefresh) {
     const { data, error } = await supabase.auth.refreshSession();
     if (error) {
+      if (isInvalidRefreshTokenError(error)) {
+        await clearLocalSession();
+      }
       throw new Error("Unable to refresh Supabase session for API authentication.");
     }
 
@@ -42,6 +59,9 @@ async function getAccessToken(options?: { forceRefresh?: boolean }): Promise<str
 
   const { data, error } = await supabase.auth.getSession();
   if (error) {
+    if (isInvalidRefreshTokenError(error)) {
+      await clearLocalSession();
+    }
     throw new Error("Unable to read Supabase session for API authentication.");
   }
 

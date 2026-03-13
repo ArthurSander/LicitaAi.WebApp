@@ -7,6 +7,13 @@ function toAuthUser(user: { id: string; email?: string | null } | null): AuthUse
   return { id: user.id, email: user.email ?? null };
 }
 
+function isInvalidRefreshTokenError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeMessage = "message" in error ? (error as { message?: unknown }).message : undefined;
+  const message = typeof maybeMessage === "string" ? maybeMessage.toLowerCase() : "";
+  return message.includes("invalid refresh token") || message.includes("refresh token not found");
+}
+
 export class SupabaseAuthRepository implements AuthRepository {
   async signInWithPassword(params: SignInWithPasswordParams): Promise<AuthUser> {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,8 +37,13 @@ export class SupabaseAuthRepository implements AuthRepository {
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) return null;
-    return toAuthUser(data.user);
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      if (isInvalidRefreshTokenError(error)) {
+        await supabase.auth.signOut({ scope: "local" });
+      }
+      return null;
+    }
+    return toAuthUser(data.session?.user ?? null);
   }
 }
