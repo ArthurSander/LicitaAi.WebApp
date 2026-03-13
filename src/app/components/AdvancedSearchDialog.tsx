@@ -33,6 +33,20 @@ import { Portal } from "../../types/BuscaLicitacoes/Portal";
 import { useEstados } from "../hooks/useEstados";
 import { useCidades } from "../hooks/useCidades";
 import { useModalidades } from "../hooks/useModalidades";
+import { Skeleton } from "./ui/skeleton";
+
+function FilterListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="space-y-3 py-1">
+      {Array.from({ length: rows }).map((_, index) => (
+        <div key={`advanced-filter-skeleton-${index}`} className="flex items-center space-x-2">
+          <Skeleton className="h-4 w-4 rounded-sm" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export type AdvancedSearchDialogProps = {
   open: boolean;
@@ -53,9 +67,9 @@ export function AdvancedSearchDialog({
   setFilterData,
   onSubmit,
 }: AdvancedSearchDialogProps) {
-  const { estados } = useEstados();
-  const { cidades } = useCidades(filterData.StateCodes);
-  const { modalidades } = useModalidades();
+  const { estados, isLoading: isEstadosLoading } = useEstados();
+  const { cidades, isLoading: isCidadesLoading } = useCidades(filterData.StateCodes);
+  const { modalidades, isLoading: isModalidadesLoading } = useModalidades();
   const [estadoSearchQuery, setEstadoSearchQuery] = useState("");
   const [cidadeSearchQuery, setCidadeSearchQuery] = useState("");
   const [portalSearchQuery, setPortalSearchQuery] = useState("");
@@ -209,6 +223,7 @@ export function AdvancedSearchDialog({
   };
 
   useEffect(() => {
+    if (isCidadesLoading) return;
     setFilterData((prev) => {
       const availableCityIds = new Set(cidades.map((c) => c.id));
       const nextCityIds = prev.CityIds.filter((id) => availableCityIds.has(id));
@@ -218,7 +233,7 @@ export function AdvancedSearchDialog({
         CityIds: nextCityIds,
       };
     });
-  }, [cidades, setFilterData]);
+  }, [cidades, isCidadesLoading, setFilterData]);
 
   useEffect(() => {
     if (hasSelectedStates) return;
@@ -226,13 +241,14 @@ export function AdvancedSearchDialog({
   }, [hasSelectedStates]);
 
   useEffect(() => {
+    if (isModalidadesLoading) return;
     setFilterData((prev) => {
       if (!prev.ModalityId) return prev;
       const exists = modalidades.some((m) => m.codigo === prev.ModalityId);
       if (exists) return prev;
       return { ...prev, ModalityId: "" };
     });
-  }, [modalidades, setFilterData]);
+  }, [modalidades, isModalidadesLoading, setFilterData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -436,14 +452,22 @@ export function AdvancedSearchDialog({
               }}
             >
               <SelectTrigger className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
-                <SelectValue placeholder="Selecione uma modalidade" />
+                <SelectValue
+                  placeholder={isModalidadesLoading ? "Carregando modalidades..." : "Selecione uma modalidade"}
+                />
               </SelectTrigger>
               <SelectContent>
-                {modalidades.map((m) => (
-                  <SelectItem key={m.codigo} value={m.codigo}>
-                    {m.nome}
-                  </SelectItem>
-                ))}
+                {isModalidadesLoading ? (
+                  <div className="px-2 py-2">
+                    <Skeleton className="h-4 w-44" />
+                  </div>
+                ) : (
+                  modalidades.map((m) => (
+                    <SelectItem key={m.codigo} value={m.codigo}>
+                      {m.nome}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -460,7 +484,9 @@ export function AdvancedSearchDialog({
                   className="w-full justify-between text-left font-normal bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F]"
                 >
                   <span className="text-sm text-[#111827] dark:text-[#F7F8FA] truncate">
-                    {filterData.StateCodes.length === 0
+                    {isEstadosLoading
+                      ? "Carregando estados..."
+                      : filterData.StateCodes.length === 0
                       ? 'Selecione os estados'
                       : estados.length > 0 && filterData.StateCodes.length === estados.length
                       ? 'Todos os estados'
@@ -483,21 +509,25 @@ export function AdvancedSearchDialog({
                   />
                 </div>
                 <div className="space-y-3">
-                  {filteredEstados.map((estado) => (
-                    <div key={estado.codigo} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`${idPrefix}-estado-${estado.codigo}`}
-                        checked={filterData.StateCodes.includes(estado.codigo)}
-                        onCheckedChange={() => toggleStateCode(estado.codigo)}
-                      />
-                      <label
-                        htmlFor={`${idPrefix}-estado-${estado.codigo}`}
-                        className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {estado.nome}
-                      </label>
-                    </div>
-                  ))}
+                  {isEstadosLoading ? (
+                    <FilterListSkeleton rows={6} />
+                  ) : (
+                    filteredEstados.map((estado) => (
+                      <div key={estado.codigo} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${idPrefix}-estado-${estado.codigo}`}
+                          checked={filterData.StateCodes.includes(estado.codigo)}
+                          onCheckedChange={() => toggleStateCode(estado.codigo)}
+                        />
+                        <label
+                          htmlFor={`${idPrefix}-estado-${estado.codigo}`}
+                          className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {estado.nome}
+                        </label>
+                      </div>
+                    ))
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
@@ -518,6 +548,8 @@ export function AdvancedSearchDialog({
                   <span className="text-sm text-[#111827] dark:text-[#F7F8FA] truncate">
                     {!hasSelectedStates
                       ? "Selecione ao menos um estado"
+                      : isCidadesLoading
+                      ? "Carregando cidades..."
                       : filterData.CityIds.length === 0
                       ? 'Selecione as cidades'
                       : cidades.length > 0 && filterData.CityIds.length === cidades.length
@@ -547,21 +579,25 @@ export function AdvancedSearchDialog({
                           className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
                         />
                       </div>
-                      {filteredCidades.map((cidade) => (
-                        <div key={cidade.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`${idPrefix}-cidade-${cidade.id}`}
-                            checked={filterData.CityIds.includes(cidade.id)}
-                            onCheckedChange={() => toggleCityId(cidade.id)}
-                          />
-                          <label
-                            htmlFor={`${idPrefix}-cidade-${cidade.id}`}
-                            className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {cidade.nome}
-                          </label>
-                        </div>
-                      ))}
+                      {isCidadesLoading ? (
+                        <FilterListSkeleton rows={6} />
+                      ) : (
+                        filteredCidades.map((cidade) => (
+                          <div key={cidade.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`${idPrefix}-cidade-${cidade.id}`}
+                              checked={filterData.CityIds.includes(cidade.id)}
+                              onCheckedChange={() => toggleCityId(cidade.id)}
+                            />
+                            <label
+                              htmlFor={`${idPrefix}-cidade-${cidade.id}`}
+                              className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {cidade.nome}
+                            </label>
+                          </div>
+                        ))
+                      )}
                     </>
                   )}
                 </div>
