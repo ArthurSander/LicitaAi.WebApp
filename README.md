@@ -15,6 +15,7 @@ This project uses Supabase authentication and requires:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_LICITAAI_API_URL` (defaults to `/api/licitaai` for same-origin proxy)
 
 Local setup:
 
@@ -38,6 +39,7 @@ Set these GitHub repository secrets so CI/CD can deploy and inject app env value
 - `VERCEL_PROJECT_ID`
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_LICITAAI_API_URL`
 
 If you are using GitHub Environments, create them in environment `prod` (the workflow jobs use `environment: prod`).
 
@@ -45,3 +47,4 @@ Notes:
 
 - `VITE_*` variables are public by design in Vite and are embedded at build time.
 - Client-side routes are handled by `vercel.json` rewrite to `index.html`.
+- API calls are proxied through same-origin `/api/licitaai/*` to avoid browser CORS blocking.

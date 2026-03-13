@@ -4,6 +4,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
 import { useItensLicitacao } from '../hooks/useItensLicitacao';
 import { useArquivosLicitacao } from '../hooks/useArquivosLicitacao';
+import { Skeleton } from './ui/skeleton';
 
 interface OpportunityModalProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function OpportunityModal({ open, onClose, licitacao }: OpportunityModalP
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg w-full max-w-4xl max-h-[85vh] overflow-hidden z-50 flex flex-col">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg w-[92vw] max-w-[920px] h-[78vh] max-h-[78vh] overflow-hidden z-50 flex flex-col">
           {/* Header */}
           <div className="p-6 border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
             <div className="flex items-start justify-between mb-3">
@@ -63,7 +64,7 @@ export function OpportunityModal({ open, onClose, licitacao }: OpportunityModalP
           </div>
 
           {/* Tabs */}
-          <Tabs.Root defaultValue="itens" className="flex-1 flex flex-col overflow-hidden">
+          <Tabs.Root defaultValue="itens" className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <Tabs.List className="flex border-b border-[#E6E8EC] dark:border-[#1F1F1F] px-6">
               <Tabs.Trigger
                 value="itens"
@@ -80,9 +81,32 @@ export function OpportunityModal({ open, onClose, licitacao }: OpportunityModalP
             </Tabs.List>
 
             {/* Itens Tab */}
-            <Tabs.Content value="itens" className="flex-1 overflow-y-auto p-6">
+            <Tabs.Content value="itens" className="flex-1 min-h-0 overflow-y-auto p-6">
               {isLoadingItens ? (
-                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Carregando itens...</p>
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={`loading-item-${index}`}
+                      className="bg-[#F7F8FA] dark:bg-[#1F1F1F] border border-[#E6E8EC] dark:border-[#2A2A2A] rounded-lg p-4"
+                    >
+                      <Skeleton className="h-5 w-28 mb-3" />
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-5 w-14" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-3 w-32" />
+                          <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-5 w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : itens.length === 0 ? (
                 <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Nenhum item encontrado.</p>
               ) : (
@@ -118,9 +142,19 @@ export function OpportunityModal({ open, onClose, licitacao }: OpportunityModalP
             </Tabs.Content>
 
             {/* Arquivos Tab */}
-            <Tabs.Content value="arquivos" className="flex-1 overflow-y-auto p-6">
+            <Tabs.Content value="arquivos" className="flex-1 min-h-0 overflow-y-auto p-6">
               {isLoadingArquivos ? (
-                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Carregando arquivos...</p>
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div
+                      key={`loading-file-${index}`}
+                      className="bg-[#F7F8FA] dark:bg-[#1F1F1F] border border-[#E6E8EC] dark:border-[#2A2A2A] rounded-lg p-4 flex items-center justify-between"
+                    >
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-9 w-24" />
+                    </div>
+                  ))}
+                </div>
               ) : arquivos.length === 0 ? (
                 <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Nenhum arquivo encontrado.</p>
               ) : (

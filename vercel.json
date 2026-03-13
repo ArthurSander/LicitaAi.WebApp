@@ -5,6 +5,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/licitaai/:match*",
+      "destination": "https://licitaai-autumn-pond-2800.fly.dev/:match*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

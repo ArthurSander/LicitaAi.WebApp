@@ -26,6 +26,7 @@ const mockSavedOpportunities = [
     openingDate: '18 mar 2026',
     publishDate: '06 mar 2026',
     modoDisputa: 'aberto' as const,
+    linkDownloadEdital: '#',
   },
   {
     id: 3,
@@ -38,6 +39,7 @@ const mockSavedOpportunities = [
     openingDate: '22 mar 2026',
     publishDate: '06 mar 2026',
     modoDisputa: 'aberto' as const,
+    linkDownloadEdital: '#',
   },
   {
     id: 5,
@@ -50,6 +52,7 @@ const mockSavedOpportunities = [
     openingDate: '15 mar 2026',
     publishDate: '01 mar 2026',
     modoDisputa: 'aberto-fechado' as const,
+    linkDownloadEdital: '#',
   },
 ];
 

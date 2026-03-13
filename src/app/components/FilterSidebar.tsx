@@ -55,6 +55,7 @@ export function FilterSidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [estadoSearchQuery, setEstadoSearchQuery] = useState('');
   const [cidadeSearchQuery, setCidadeSearchQuery] = useState('');
+  const [portalSearchQuery, setPortalSearchQuery] = useState('');
 
   const hasSelectedStates = filterData.StateCodes.length > 0;
 
@@ -73,6 +74,12 @@ export function FilterSidebar({
     if (!query) return cidades;
     return cidades.filter((cidade) => cidade.nome.toLowerCase().includes(query));
   }, [cidades, cidadeSearchQuery]);
+
+  const filteredPortais = useMemo(() => {
+    const query = portalSearchQuery.trim().toLowerCase();
+    if (!query) return portals;
+    return portals.filter((portal) => portal.nome.toLowerCase().includes(query));
+  }, [portals, portalSearchQuery]);
 
   const isAdvancedKeywordSearchActive =
     filterData.IncludeKeywords.length > 1 || filterData.ExcludeKeywords.length > 0;
@@ -171,9 +178,9 @@ export function FilterSidebar({
   useEffect(() => {
     setFilterData((prev) => {
       if (!prev.ModalityId) return prev;
-      const exists = modalidades.some((m) => m.nome === prev.ModalityId);
+      const exists = modalidades.some((m) => m.codigo === prev.ModalityId);
       if (exists) return prev;
-      return { ...prev, ModalityId: undefined };
+      return { ...prev, ModalityId: '' };
     });
   }, [modalidades]);
 
@@ -333,7 +340,7 @@ export function FilterSidebar({
         <div className="space-y-3">
           <Label className="text-sm text-[#111827] dark:text-[#F7F8FA]">Modalidade</Label>
           <Select
-            value={filterData.ModalityId}
+            value={filterData.ModalityId || undefined}
             onValueChange={(value) => {
               setFilterData((prev) => ({
                 ...prev,
@@ -346,7 +353,7 @@ export function FilterSidebar({
             </SelectTrigger>
             <SelectContent>
               {modalidades.map((m) => (
-                <SelectItem key={m.nome} value={m.nome}>
+                <SelectItem key={m.codigo} value={m.codigo}>
                   {m.nome}
                 </SelectItem>
               ))}
@@ -374,10 +381,10 @@ export function FilterSidebar({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+              className="w-[280px] max-h-[48vh] overflow-hidden p-0 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
               align="start"
             >
-              <div className="space-y-3">
+              <div className="px-3 py-2 bg-white dark:bg-[#111111] border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
                 <input
                   type="text"
                   placeholder="Filtrar estados..."
@@ -385,6 +392,8 @@ export function FilterSidebar({
                   value={estadoSearchQuery}
                   onChange={(e) => setEstadoSearchQuery(e.target.value)}
                 />
+              </div>
+              <div className="max-h-[calc(48vh-56px)] overflow-y-auto px-3 py-2 space-y-3">
                 {filteredEstados.map((estado) => (
                   <div key={estado.codigo} className="flex items-center space-x-2">
                     <Checkbox
@@ -428,38 +437,42 @@ export function FilterSidebar({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+              className="w-[280px] max-h-[48vh] overflow-hidden p-0 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
               align="start"
             >
-              <div className="space-y-3">
+              <div className="px-3 py-2">
                 {!hasSelectedStates ? (
                   <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
                     Selecione pelo menos um estado para habilitar cidades.
                   </p>
                 ) : (
                   <>
-                    <input
-                      type="text"
-                      placeholder="Filtrar cidades..."
-                      className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
-                      value={cidadeSearchQuery}
-                      onChange={(e) => setCidadeSearchQuery(e.target.value)}
-                    />
-                    {filteredCidades.map((cidade) => (
-                      <div key={cidade.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`sidebar-cidade-${cidade.id}`}
-                          checked={filterData.CityIds.includes(cidade.id)}
-                          onCheckedChange={() => toggleCityId(cidade.id)}
-                        />
-                        <label
-                          htmlFor={`sidebar-cidade-${cidade.id}`}
-                          className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {cidade.nome}
-                        </label>
-                      </div>
-                    ))}
+                    <div className="pb-2 border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
+                      <input
+                        type="text"
+                        placeholder="Filtrar cidades..."
+                        className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                        value={cidadeSearchQuery}
+                        onChange={(e) => setCidadeSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <div className="max-h-[calc(48vh-74px)] overflow-y-auto pt-2 space-y-3">
+                      {filteredCidades.map((cidade) => (
+                        <div key={cidade.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`sidebar-cidade-${cidade.id}`}
+                            checked={filterData.CityIds.includes(cidade.id)}
+                            onCheckedChange={() => toggleCityId(cidade.id)}
+                          />
+                          <label
+                            htmlFor={`sidebar-cidade-${cidade.id}`}
+                            className="text-sm text-[#111827] dark:text-[#F7F8FA] cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {cidade.nome}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </>
                 )}
               </div>
@@ -533,11 +546,20 @@ export function FilterSidebar({
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]" 
+              className="w-[280px] max-h-[48vh] overflow-hidden p-0 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]" 
               align="start"
             >
-              <div className="space-y-3">
-                {portals.map((portal) => (
+              <div className="px-3 py-2 bg-white dark:bg-[#111111] border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
+                <input
+                  type="text"
+                  placeholder="Filtrar portais..."
+                  className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                  value={portalSearchQuery}
+                  onChange={(e) => setPortalSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-[calc(48vh-56px)] overflow-y-auto px-3 py-2 space-y-3">
+                {filteredPortais.map((portal) => (
                   <div key={portal.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`portal-${portal.id}`}
@@ -581,3 +603,5 @@ export function FilterSidebar({
     </aside>
   );
 }
+
+

@@ -58,6 +58,7 @@ export function AdvancedSearchDialog({
   const { modalidades } = useModalidades();
   const [estadoSearchQuery, setEstadoSearchQuery] = useState("");
   const [cidadeSearchQuery, setCidadeSearchQuery] = useState("");
+  const [portalSearchQuery, setPortalSearchQuery] = useState("");
   const hasSelectedStates = filterData.StateCodes.length > 0;
 
   const filteredEstados = useMemo(() => {
@@ -75,6 +76,12 @@ export function AdvancedSearchDialog({
     if (!query) return cidades;
     return cidades.filter((cidade) => cidade.nome.toLowerCase().includes(query));
   }, [cidades, cidadeSearchQuery]);
+
+  const filteredPortais = useMemo(() => {
+    const query = portalSearchQuery.trim().toLowerCase();
+    if (!query) return portais;
+    return portais.filter((portal) => portal.nome.toLowerCase().includes(query));
+  }, [portais, portalSearchQuery]);
 
   // Local UI state for input fields
   const [currentIncludeInput, setCurrentIncludeInput] = useState("");
@@ -221,9 +228,9 @@ export function AdvancedSearchDialog({
   useEffect(() => {
     setFilterData((prev) => {
       if (!prev.ModalityId) return prev;
-      const exists = modalidades.some((m) => m.nome === prev.ModalityId);
+      const exists = modalidades.some((m) => m.codigo === prev.ModalityId);
       if (exists) return prev;
-      return { ...prev, ModalityId: undefined };
+      return { ...prev, ModalityId: "" };
     });
   }, [modalidades, setFilterData]);
 
@@ -420,7 +427,7 @@ export function AdvancedSearchDialog({
               Modalidade
             </Label>
             <Select
-              value={filterData.ModalityId}
+              value={filterData.ModalityId || undefined}
               onValueChange={(value) => {
                 setFilterData({
                   ...filterData,
@@ -433,7 +440,7 @@ export function AdvancedSearchDialog({
               </SelectTrigger>
               <SelectContent>
                 {modalidades.map((m) => (
-                  <SelectItem key={m.nome} value={m.nome}>
+                  <SelectItem key={m.codigo} value={m.codigo}>
                     {m.nome}
                   </SelectItem>
                 ))}
@@ -463,10 +470,10 @@ export function AdvancedSearchDialog({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+                className="w-[280px] max-h-[48vh] overflow-y-auto p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
                 align="start"
               >
-                <div className="space-y-3">
+                <div className="sticky top-0 z-20 -mx-3 px-3 py-2 bg-white dark:bg-[#111111] border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
                   <Input
                     type="text"
                     placeholder="Filtrar estados..."
@@ -474,6 +481,8 @@ export function AdvancedSearchDialog({
                     onChange={(e) => setEstadoSearchQuery(e.target.value)}
                     className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
                   />
+                </div>
+                <div className="space-y-3">
                   {filteredEstados.map((estado) => (
                     <div key={estado.codigo} className="flex items-center space-x-2">
                       <Checkbox
@@ -519,7 +528,7 @@ export function AdvancedSearchDialog({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+                className="w-[280px] max-h-[48vh] overflow-y-auto p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
                 align="start"
               >
                 <div className="space-y-3">
@@ -529,13 +538,15 @@ export function AdvancedSearchDialog({
                     </p>
                   ) : (
                     <>
-                      <Input
-                        type="text"
-                        placeholder="Filtrar cidades..."
-                        value={cidadeSearchQuery}
-                        onChange={(e) => setCidadeSearchQuery(e.target.value)}
-                        className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
-                      />
+                      <div className="sticky top-0 z-20 -mx-3 px-3 py-2 bg-white dark:bg-[#111111] border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
+                        <Input
+                          type="text"
+                          placeholder="Filtrar cidades..."
+                          value={cidadeSearchQuery}
+                          onChange={(e) => setCidadeSearchQuery(e.target.value)}
+                          className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
+                        />
+                      </div>
                       {filteredCidades.map((cidade) => (
                         <div key={cidade.id} className="flex items-center space-x-2">
                           <Checkbox
@@ -629,11 +640,20 @@ export function AdvancedSearchDialog({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[280px] p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+                className="w-[280px] max-h-[48vh] overflow-y-auto p-3 bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
                 align="start"
               >
+                <div className="sticky top-0 z-20 -mx-3 px-3 py-2 bg-white dark:bg-[#111111] border-b border-[#E6E8EC] dark:border-[#1F1F1F]">
+                  <Input
+                    type="text"
+                    placeholder="Filtrar portais..."
+                    value={portalSearchQuery}
+                    onChange={(e) => setPortalSearchQuery(e.target.value)}
+                    className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA]"
+                  />
+                </div>
                 <div className="space-y-3">
-                  {portais.map((portal) => (
+                  {filteredPortais.map((portal) => (
                     <div
                       key={portal.id}
                       className="flex items-center space-x-2"
@@ -679,3 +699,5 @@ export function AdvancedSearchDialog({
     </Dialog>
   );
 }
+
+

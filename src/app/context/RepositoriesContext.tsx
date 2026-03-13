@@ -1,20 +1,19 @@
 import { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
 import type { PortalRepository } from "../../repositories/BuscaLicitacoes/portalRepository";
-import { MockPortalRepository } from "../../repositories/BuscaLicitacoes/mockPortalRepository";
+import { LicitaAiPortalRepository } from "../../repositories/BuscaLicitacoes/licitaAiPortalRepository";
 import type { EstadoRepository } from "../../repositories/BuscaLicitacoes/estadoRepository";
-import { MockEstadoRepository } from "../../repositories/BuscaLicitacoes/mockEstadoRepository";
+import { LicitaAiEstadoRepository } from "../../repositories/BuscaLicitacoes/licitaAiEstadoRepository";
 import type { CidadeRepository } from "../../repositories/BuscaLicitacoes/cidadeRepository";
-import { MockCidadeRepository } from "../../repositories/BuscaLicitacoes/mockCidadeRepository";
-import { EstadoFilteredCidadeRepository } from "../../repositories/BuscaLicitacoes/estadoFilteredCidadeRepository";
+import { LicitaAiCidadeRepository } from "../../repositories/BuscaLicitacoes/licitaAiCidadeRepository";
 import type { ModalidadeRepository } from "../../repositories/BuscaLicitacoes/modalidadeRepository";
-import { MockModalidadeRepository } from "../../repositories/BuscaLicitacoes/mockModalidadeRepository";
+import { LocalModalidadeRepository } from "../../repositories/BuscaLicitacoes/localModalidadeRepository";
 import type { LicitacaoRepository } from "../../repositories/BuscaLicitacoes/licitacaoRepository";
-import { MockLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockLicitacaoRepository";
+import { LicitaAiLicitacaoRepository } from "../../repositories/BuscaLicitacoes/licitaAiLicitacaoRepository";
 import type { ItemLicitacaoRepository } from "../../repositories/BuscaLicitacoes/itemLicitacaoRepository";
-import { MockItemLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockItemLicitacaoRepository";
+import { LicitaAiItemLicitacaoRepository } from "../../repositories/BuscaLicitacoes/licitaAiItemLicitacaoRepository";
 import type { ArquivoLicitacaoRepository } from "../../repositories/BuscaLicitacoes/arquivoLicitacaoRepository";
-import { MockArquivoLicitacaoRepository } from "../../repositories/BuscaLicitacoes/mockArquivoLicitacaoRepository";
+import { LicitaAiArquivoLicitacaoRepository } from "../../repositories/BuscaLicitacoes/licitaAiArquivoLicitacaoRepository";
 import type { AuthRepository } from "../../repositories/Auth/authRepository";
 import { SupabaseAuthRepository } from "../../repositories/Auth/supabaseAuthRepository";
 
@@ -40,23 +39,23 @@ export function RepositoriesProvider({
 }) {
   const repositories = useMemo<Repositories>(() => {
     return {
-      portalRepository: repositoriesOverride?.portalRepository ?? new MockPortalRepository(),
-      estadoRepository: repositoriesOverride?.estadoRepository ?? new MockEstadoRepository(),
+      portalRepository: repositoriesOverride?.portalRepository ?? new LicitaAiPortalRepository(),
+      estadoRepository: repositoriesOverride?.estadoRepository ?? new LicitaAiEstadoRepository(),
       cidadeRepository:
         repositoriesOverride?.cidadeRepository ??
-        new EstadoFilteredCidadeRepository(new MockCidadeRepository()),
+        new LicitaAiCidadeRepository(),
       modalidadeRepository:
         repositoriesOverride?.modalidadeRepository ??
-        new MockModalidadeRepository(),
+        new LocalModalidadeRepository(),
       licitacaoRepository:
         repositoriesOverride?.licitacaoRepository ??
-        new MockLicitacaoRepository(),
+        new LicitaAiLicitacaoRepository(),
       itemLicitacaoRepository:
         repositoriesOverride?.itemLicitacaoRepository ??
-        new MockItemLicitacaoRepository(),
+        new LicitaAiItemLicitacaoRepository(),
       arquivoLicitacaoRepository:
         repositoriesOverride?.arquivoLicitacaoRepository ??
-        new MockArquivoLicitacaoRepository(),
+        new LicitaAiArquivoLicitacaoRepository(),
       authRepository:
         repositoriesOverride?.authRepository ??
         new SupabaseAuthRepository(),

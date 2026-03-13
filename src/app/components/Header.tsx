@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Search, Bell, Moon, Sun, User, CreditCard, LogOut } from 'lucide-react';
+import { Search, Moon, Sun, User, CreditCard, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useAuthRepository } from '../context/RepositoriesContext';
@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
@@ -46,10 +45,6 @@ export function Header() {
 
         {/* Right side - Navigation items */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-[#F7F8FA] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] relative transition-colors">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#2563EB] dark:bg-[#93C5FD] rounded-full"></span>
-          </Button>
           <Button 
             variant="ghost" 
             size="icon" 

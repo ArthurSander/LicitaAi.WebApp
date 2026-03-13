@@ -22,3 +22,5 @@ lerna-debug.log*
 
 # Optional: Environment variables file
 .env
+
+/temp

@@ -1,4 +1,4 @@
-import { Search, Settings, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
+import { Search, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { SidebarCategory } from './SidebarCategory';
 import { SidebarButton } from './SidebarButton';
@@ -47,13 +47,6 @@ export function AppSidebar({ isCollapsed, onToggle }: AppSidebarProps) {
               path="/"
               isCollapsed={isCollapsed}
               matchPaths={['/resultados']}
-            />
-
-            <SidebarButton
-              icon={Bookmark}
-              label="Licitações Salvas"
-              path="/licitacoes-salvas"
-              isCollapsed={isCollapsed}
             />
           </SidebarCategory>
 

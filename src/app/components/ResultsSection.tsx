@@ -21,6 +21,7 @@ import { useCidades } from '../hooks/useCidades';
 import { useModalidades } from '../hooks/useModalidades';
 import { OpportunityModal } from './OpportunityModal';
 import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
+import { Skeleton } from './ui/skeleton';
 
 function formatBRL(value: number | undefined) {
   if (value == null) return '—';
@@ -35,21 +36,24 @@ export function ResultsSection({
   filterData,
   setFilterData,
   searchFilterData,
+  onSearch,
 }: {
   filterData: LicitacaoFilterData;
   setFilterData: Dispatch<SetStateAction<LicitacaoFilterData>>;
   searchFilterData?: LicitacaoFilterData;
+  onSearch?: (nextFilterData?: LicitacaoFilterData) => void;
 }) {
   const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<'recent' | 'value-high' | 'value-low' | 'closing'>('recent');
+  const effectiveSearchFilter = searchFilterData ?? filterData;
+  const displayedFilterData = searchFilterData ?? filterData;
 
   const { estados } = useEstados();
-  const { cidades } = useCidades(filterData.StateCodes);
+  const { cidades } = useCidades(displayedFilterData.StateCodes);
   const { modalidades } = useModalidades();
-  const effectiveSearchFilter = searchFilterData ?? filterData;
 
   const { items, totalCount, isLoading } = useLicitacoes({
     filter: effectiveSearchFilter,
@@ -76,7 +80,7 @@ export function ResultsSection({
     const badges: Array<{ key: string; label: string; onRemove: () => void }> = [];
 
     // Include / exclude keywords
-    for (const kw of filterData.IncludeKeywords) {
+    for (const kw of displayedFilterData.IncludeKeywords) {
       const trimmed = kw.trim();
       if (!trimmed) continue;
       badges.push({
@@ -90,7 +94,7 @@ export function ResultsSection({
       });
     }
 
-    for (const kw of filterData.ExcludeKeywords) {
+    for (const kw of displayedFilterData.ExcludeKeywords) {
       const trimmed = kw.trim();
       if (!trimmed) continue;
       badges.push({
@@ -105,7 +109,7 @@ export function ResultsSection({
     }
 
     // Portals
-    for (const portal of filterData.Portals) {
+    for (const portal of displayedFilterData.Portals) {
       badges.push({
         key: `portal:${portal.id}`,
         label: portal.nome,
@@ -118,19 +122,19 @@ export function ResultsSection({
     }
 
     // Modalidade
-    if (filterData.ModalityId) {
+    if (displayedFilterData.ModalityId) {
       const modLabel =
-        modalidades.find((m) => m.nome === filterData.ModalityId)?.nome ??
-        filterData.ModalityId;
+        modalidades.find((m) => m.codigo === displayedFilterData.ModalityId)?.nome ??
+        displayedFilterData.ModalityId;
       badges.push({
-        key: `modality:${filterData.ModalityId}`,
+        key: `modality:${displayedFilterData.ModalityId}`,
         label: modLabel,
-        onRemove: () => setFilterData((prev) => ({ ...prev, ModalityId: undefined })),
+        onRemove: () => setFilterData((prev) => ({ ...prev, ModalityId: '' })),
       });
     }
 
     // Estados
-    for (const code of filterData.StateCodes) {
+    for (const code of displayedFilterData.StateCodes) {
       const label = estados.find((e) => e.codigo === code)?.codigo ?? code;
       badges.push({
         key: `state:${code}`,
@@ -144,7 +148,7 @@ export function ResultsSection({
     }
 
     // Cidades
-    for (const cityId of filterData.CityIds) {
+    for (const cityId of displayedFilterData.CityIds) {
       const label = cidades.find((c) => c.id === cityId)?.nome ?? cityId;
       badges.push({
         key: `city:${cityId}`,
@@ -158,7 +162,7 @@ export function ResultsSection({
     }
 
     // Governo
-    for (const level of filterData.GovernmentLevels) {
+    for (const level of displayedFilterData.GovernmentLevels) {
       badges.push({
         key: `gov:${level}`,
         label: level,
@@ -171,7 +175,7 @@ export function ResultsSection({
     }
 
     // Data de abertura
-    if (filterData.OpeningDateFilter !== 'any') {
+    if (displayedFilterData.OpeningDateFilter !== 'any') {
       const labelMap: Record<LicitacaoFilterData['OpeningDateFilter'], string> = {
         any: 'Qualquer data',
         today: 'Hoje',
@@ -181,13 +185,13 @@ export function ResultsSection({
       };
 
       const label =
-        filterData.OpeningDateFilter === 'custom-period' &&
-        (filterData.OpeningDateStart || filterData.OpeningDateEnd)
-          ? `${filterData.OpeningDateStart ? format(filterData.OpeningDateStart, 'dd/MM/yyyy', { locale: ptBR }) : '...'} - ${filterData.OpeningDateEnd ? format(filterData.OpeningDateEnd, 'dd/MM/yyyy', { locale: ptBR }) : '...'}`
-          : labelMap[filterData.OpeningDateFilter];
+        displayedFilterData.OpeningDateFilter === 'custom-period' &&
+        (displayedFilterData.OpeningDateStart || displayedFilterData.OpeningDateEnd)
+          ? `${displayedFilterData.OpeningDateStart ? format(displayedFilterData.OpeningDateStart, 'dd/MM/yyyy', { locale: ptBR }) : '...'} - ${displayedFilterData.OpeningDateEnd ? format(displayedFilterData.OpeningDateEnd, 'dd/MM/yyyy', { locale: ptBR }) : '...'}`
+          : labelMap[displayedFilterData.OpeningDateFilter];
 
       badges.push({
-        key: `opening:${filterData.OpeningDateFilter}:${filterData.OpeningDateStart?.toISOString() ?? ''}:${filterData.OpeningDateEnd?.toISOString() ?? ''}`,
+        key: `opening:${displayedFilterData.OpeningDateFilter}:${displayedFilterData.OpeningDateStart?.toISOString() ?? ''}:${displayedFilterData.OpeningDateEnd?.toISOString() ?? ''}`,
         label,
         onRemove: () =>
           setFilterData((prev) => ({
@@ -212,10 +216,73 @@ export function ResultsSection({
   }, [
     cidades,
     estados,
-    filterData,
+    displayedFilterData,
     modalidades,
     setFilterData,
   ]);
+
+  const renderLoadingCards = () => (
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={`loading-card-${index}`}
+          className="bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg p-6"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-64" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#E6E8EC] dark:border-[#1F1F1F]">
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-5 w-28" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const handleClearFilters = () => {
+    const clearedFilterData: LicitacaoFilterData = {
+      ...defaultLicitacaoFilterData,
+      IncludeKeywords: [],
+      ExcludeKeywords: [],
+      Portals: [],
+      StateCodes: [],
+      CityIds: [],
+      GovernmentLevels: [],
+      ModalityId: '',
+      OpeningDateStart: undefined,
+      OpeningDateEnd: undefined,
+    };
+
+    if (onSearch) {
+      onSearch(clearedFilterData);
+      return;
+    }
+
+    setFilterData(clearedFilterData);
+  };
 
   return (
     <div className="flex-1 min-w-0">
@@ -289,7 +356,7 @@ export function ResultsSection({
             variant="ghost"
             size="sm"
             className="text-[#6B7280] hover:text-[#111827] h-7"
-            onClick={() => setFilterData(defaultLicitacaoFilterData)}
+            onClick={handleClearFilters}
           >
             Limpar filtros
           </Button>
@@ -297,26 +364,31 @@ export function ResultsSection({
       </div>
 
       {/* Opportunity cards */}
-      <div className="space-y-4">
-        {items.map((licitacao) => (
-          <OpportunityCard
-            key={licitacao.id}
-            title={licitacao.objeto}
-            organization={licitacao.orgao}
-            city={licitacao.cidade.nome}
-            state={licitacao.estado.codigo}
-            modality={licitacao.modalidade.nome}
-            estimatedValue={formatBRL(licitacao.valorEstimado)}
-            openingDate={format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })}
-            publishDate={format(licitacao.dataPublicacao, 'dd MMM yyyy', { locale: ptBR })}
-            modoDisputa={licitacao.modoDisputa ?? 'aberto'}
-            onOpenDetails={() => {
-              setSelectedLicitacao(licitacao);
-              setIsModalOpen(true);
-            }}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        renderLoadingCards()
+      ) : (
+        <div className="space-y-4">
+          {items.map((licitacao) => (
+            <OpportunityCard
+              key={licitacao.id}
+              title={licitacao.objeto}
+              organization={licitacao.orgao}
+              city={licitacao.cidade.nome}
+              state={licitacao.estado.codigo}
+              modality={licitacao.modalidade.nome}
+              linkDownloadEdital={licitacao.linkDownloadEdital}
+              estimatedValue={formatBRL(licitacao.valorEstimado)}
+              openingDate={format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })}
+              publishDate={format(licitacao.dataPublicacao, 'dd MMM yyyy', { locale: ptBR })}
+              modoDisputa={licitacao.modoDisputa ?? 'aberto'}
+              onOpenDetails={() => {
+                setSelectedLicitacao(licitacao);
+                setIsModalOpen(true);
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 flex items-center justify-between gap-4">
         <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">

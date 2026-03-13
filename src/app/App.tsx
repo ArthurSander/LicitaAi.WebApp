@@ -3,6 +3,7 @@ import { router } from './routes';
 import { ThemeProvider } from './context/ThemeContext';
 import { RepositoriesProvider } from './context/RepositoriesContext';
 import { SearchFiltersProvider } from './context/SearchFiltersContext';
+import { Toaster } from './components/ui/sonner';
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <SearchFiltersProvider>
         <ThemeProvider>
           <RouterProvider router={router} />
+          <Toaster />
         </ThemeProvider>
       </SearchFiltersProvider>
     </RepositoriesProvider>

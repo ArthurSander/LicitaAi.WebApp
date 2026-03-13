@@ -42,6 +42,7 @@ export function ResultsPage() {
             filterData={draftFilterData}
             setFilterData={setDraftFilterData}
             searchFilterData={appliedFilterData}
+            onSearch={applySearch}
           />
         </div>
       </div>

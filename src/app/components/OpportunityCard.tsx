@@ -9,6 +9,7 @@ interface OpportunityCardProps {
   city: string;
   state: string;
   modality: string;
+  linkDownloadEdital?: string;
   estimatedValue: string;
   openingDate: string;
   publishDate: string;
@@ -22,12 +23,16 @@ export function OpportunityCard({
   city,
   state,
   modality,
+  linkDownloadEdital,
   estimatedValue,
   openingDate,
   publishDate,
   modoDisputa,
   onOpenDetails,
 }: OpportunityCardProps) {
+  const hasDownloadLink =
+    typeof linkDownloadEdital === 'string' && linkDownloadEdital.trim().length > 0;
+
   const modoDisputaConfig: Record<ModoDisputa, { label: string; color: string }> = {
     aberto: {
       label: 'Aberto',
@@ -43,6 +48,21 @@ export function OpportunityCard({
       label: 'Aberto/Fechado',
       color:
         'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 rounded-full',
+    },
+    'dispensa-com-disputa': {
+      label: 'Dispensa com disputa',
+      color:
+        'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 rounded-full',
+    },
+    'nao-se-aplica': {
+      label: 'Não se aplica',
+      color:
+        'bg-slate-100 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 rounded-full',
+    },
+    'fechado-aberto': {
+      label: 'Fechado/Aberto',
+      color:
+        'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 rounded-full',
     },
   };
 
@@ -110,16 +130,25 @@ export function OpportunityCard({
         {/* Actions */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              className="border-[#E6E8EC] dark:border-[#1F1F1F] hover:text-[#111827] dark:hover:text-[#F7F8FA] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] hover:border-[#D1D5DB] dark:hover:border-[#2A2A2A] transition-colors text-[#111827] dark:text-[#F7F8FA]"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Baixar Edital
-            </Button>
+            {hasDownloadLink && (
+              <Button
+                asChild
+                variant="outline"
+                className="border-[#E6E8EC] dark:border-[#1F1F1F] hover:text-[#111827] dark:hover:text-[#F7F8FA] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] hover:border-[#D1D5DB] dark:hover:border-[#2A2A2A] transition-colors text-[#111827] dark:text-[#F7F8FA]"
+              >
+                <a
+                  href={linkDownloadEdital}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar Edital
+                </a>
+              </Button>
+            )}
             <Button
               className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm"
               onClick={(e) => {

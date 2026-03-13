@@ -9,7 +9,7 @@ export type LicitacaoFilterData = {
   OpeningDateStart?: Date;
   OpeningDateEnd?: Date;
 
-  ModalityId?: string;
+  ModalityId: string;
   StateCodes: string[];
   CityIds: string[];
   GovernmentLevels: string[];
@@ -22,6 +22,7 @@ export const defaultLicitacaoFilterData: LicitacaoFilterData = {
   ExcludeKeywords: [],
   OpeningDateFilter: "any",
   Portals: [],
+  ModalityId: "",
   StateCodes: [],
   CityIds: [],
   GovernmentLevels: [],
