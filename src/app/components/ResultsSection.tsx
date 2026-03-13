@@ -24,7 +24,7 @@ import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
 import { Skeleton } from './ui/skeleton';
 
 function formatBRL(value: number | undefined) {
-  if (value == null) return '—';
+  if (value == null) return '--';
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -46,8 +46,10 @@ export function ResultsSection({
   const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState('1');
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<'recent' | 'value-high' | 'value-low' | 'closing'>('recent');
+
   const effectiveSearchFilter = searchFilterData ?? filterData;
   const displayedFilterData = searchFilterData ?? filterData;
 
@@ -76,6 +78,22 @@ export function ResultsSection({
     setPage(1);
   }, [orderBy]);
 
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  const goToPage = (value: string) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      setPageInput(String(page));
+      return;
+    }
+
+    const next = Math.min(Math.max(Math.trunc(parsed), 1), totalPages);
+    setPage(next);
+    setPageInput(String(next));
+  };
+
   const applyFilterChange = (
     updater: (current: LicitacaoFilterData) => LicitacaoFilterData,
   ) => {
@@ -90,7 +108,6 @@ export function ResultsSection({
   const activeFilterBadges = useMemo(() => {
     const badges: Array<{ key: string; label: string; onRemove: () => void }> = [];
 
-    // Include / exclude keywords
     for (const kw of displayedFilterData.IncludeKeywords) {
       const trimmed = kw.trim();
       if (!trimmed) continue;
@@ -119,7 +136,6 @@ export function ResultsSection({
       });
     }
 
-    // Portals
     for (const portal of displayedFilterData.Portals) {
       badges.push({
         key: `portal:${portal.id}`,
@@ -132,7 +148,6 @@ export function ResultsSection({
       });
     }
 
-    // Modalidade
     if (displayedFilterData.ModalityId) {
       const modLabel =
         modalidades.find((m) => m.codigo === displayedFilterData.ModalityId)?.nome ??
@@ -144,7 +159,6 @@ export function ResultsSection({
       });
     }
 
-    // Estados
     for (const code of displayedFilterData.StateCodes) {
       const label = estados.find((e) => e.codigo === code)?.codigo ?? code;
       badges.push({
@@ -158,7 +172,6 @@ export function ResultsSection({
       });
     }
 
-    // Cidades
     for (const cityId of displayedFilterData.CityIds) {
       const label = cidades.find((c) => c.id === cityId)?.nome ?? cityId;
       badges.push({
@@ -172,7 +185,6 @@ export function ResultsSection({
       });
     }
 
-    // Governo
     for (const level of displayedFilterData.GovernmentLevels) {
       badges.push({
         key: `gov:${level}`,
@@ -185,14 +197,13 @@ export function ResultsSection({
       });
     }
 
-    // Data de abertura
     if (displayedFilterData.OpeningDateFilter !== 'any') {
       const labelMap: Record<LicitacaoFilterData['OpeningDateFilter'], string> = {
         any: 'Qualquer data',
         today: 'Hoje',
         'current-week': 'Esta semana',
-        'current-month': 'Este mês',
-        'custom-period': 'Período personalizado',
+        'current-month': 'Este mes',
+        'custom-period': 'Periodo personalizado',
       };
 
       const label =
@@ -214,23 +225,13 @@ export function ResultsSection({
       });
     }
 
-    // If user has portals loaded but none selected, consider this "no filter".
-    // Nothing else to do here.
-
-    // Deduplicate by key (defensive)
     const seen = new Set<string>();
     return badges.filter((b) => {
       if (seen.has(b.key)) return false;
       seen.add(b.key);
       return true;
     });
-  }, [
-    cidades,
-    estados,
-    displayedFilterData,
-    modalidades,
-    applyFilterChange,
-  ]);
+  }, [cidades, estados, displayedFilterData, modalidades]);
 
   const renderLoadingCards = () => (
     <div className="space-y-4">
@@ -297,13 +298,12 @@ export function ResultsSection({
 
   return (
     <div className="flex-1 min-w-0">
-      {/* Results header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[#111827] dark:text-[#F7F8FA]">
             {isLoading
-              ? 'Carregando licitações...'
-              : `${totalCount.toLocaleString('pt-BR')} licitações encontradas`}
+              ? 'Carregando licitacoes...'
+              : `${totalCount.toLocaleString('pt-BR')} licitacoes encontradas`}
           </h2>
           <div className="flex items-center gap-3">
             <Select
@@ -316,13 +316,13 @@ export function ResultsSection({
               }}
             >
               <SelectTrigger className="w-[200px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
-                <SelectValue placeholder="Itens por página" />
+                <SelectValue placeholder="Itens por pagina" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 por página</SelectItem>
-                <SelectItem value="25">25 por página</SelectItem>
-                <SelectItem value="50">50 por página</SelectItem>
-                <SelectItem value="100">100 por página</SelectItem>
+                <SelectItem value="10">10 por pagina</SelectItem>
+                <SelectItem value="25">25 por pagina</SelectItem>
+                <SelectItem value="50">50 por pagina</SelectItem>
+                <SelectItem value="100">100 por pagina</SelectItem>
               </SelectContent>
             </Select>
 
@@ -340,7 +340,6 @@ export function ResultsSection({
           </div>
         </div>
 
-        {/* Active filters */}
         <div className="flex flex-wrap gap-2">
           {activeFilterBadges.map((badge) => (
             <Badge
@@ -374,7 +373,6 @@ export function ResultsSection({
         </div>
       </div>
 
-      {/* Licitacao cards */}
       {isLoading ? (
         renderLoadingCards()
       ) : (
@@ -389,7 +387,11 @@ export function ResultsSection({
               modality={licitacao.modalidade.nome}
               linkDownloadEdital={licitacao.linkDownloadEdital}
               estimatedValue={formatBRL(licitacao.valorEstimado)}
-              openingDate={format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })}
+              openingDate={
+                licitacao.dataAberturaProposta
+                  ? format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })
+                  : undefined
+              }
               publishDate={format(licitacao.dataPublicacao, 'dd MMM yyyy', { locale: ptBR })}
               modoDisputa={licitacao.modoDisputa ?? 'aberto'}
               onOpenDetails={() => {
@@ -402,13 +404,29 @@ export function ResultsSection({
       )}
 
       <div className="mt-6 flex items-center justify-between gap-4">
-        <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
-          Página {page} de {totalPages}
-        </p>
+        <div className="flex items-center gap-2 text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+          <span>Página</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value.replace(/\D/g, ''))}
+            onBlur={() => goToPage(pageInput)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              goToPage(pageInput);
+            }}
+            className="h-7 w-10 rounded-md border border-[#E6E8EC] bg-white px-2 text-center text-sm text-[#111827] dark:border-[#1F1F1F] dark:bg-[#111111] dark:text-[#F7F8FA]"
+            aria-label="Número da página"
+          />
+          <span>de {totalPages}</span>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             disabled={page <= 1 || isLoading}
+            className="cursor-pointer disabled:cursor-not-allowed"
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           >
             Anterior
@@ -416,9 +434,10 @@ export function ResultsSection({
           <Button
             variant="outline"
             disabled={page >= totalPages || isLoading}
+            className="cursor-pointer disabled:cursor-not-allowed"
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
           >
-            Próxima
+            Proxima
           </Button>
         </div>
       </div>

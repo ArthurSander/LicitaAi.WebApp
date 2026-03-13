@@ -68,10 +68,10 @@ function mapModoDisputa(value: unknown): ModoDisputa {
   return "aberto";
 }
 
-function toDateOrEpoch(value: unknown): Date {
-  if (typeof value !== "string") return new Date(0);
+function toDateOrUndefined(value: unknown): Date | undefined {
+  if (typeof value !== "string") return undefined;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date(0) : date;
+  return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 function toNumberOrUndefined(value: unknown): number | undefined {
@@ -106,6 +106,12 @@ function mapSearchItem(raw: unknown): Licitacao | null {
   const idMunicipio = toStringOrFallback(obj.idMunicipio, "");
 
   const codigoModalidade = toStringOrFallback(obj.codigoModalidade, "");
+  const dataAberturaProposta = toDateOrUndefined(obj.dataAberturaProposta);
+  const dataEncerramento =
+    toDateOrUndefined(obj.dataEncerramentoProposta) ??
+    toDateOrUndefined(obj.dataEncerramento) ??
+    toDateOrUndefined(obj.dataFimRecebimentoProposta);
+  const shouldHideOpeningDate = !dataAberturaProposta && !dataEncerramento;
 
   return {
     id,
@@ -125,8 +131,8 @@ function mapSearchItem(raw: unknown): Licitacao | null {
       nome: toStringOrFallback(obj.municipioNome, "Município não informado"),
       codigoEstado: estadoCodigo,
     },
-    dataPublicacao: toDateOrEpoch(obj.dataPublicacaoOrigem),
-    dataAberturaProposta: toDateOrEpoch(obj.dataAberturaProposta),
+    dataPublicacao: toDateOrUndefined(obj.dataPublicacaoOrigem) ?? new Date(0),
+    dataAberturaProposta: shouldHideOpeningDate ? undefined : dataAberturaProposta,
     portal: {
       id: "nao-informado",
       nome: "Não informado",

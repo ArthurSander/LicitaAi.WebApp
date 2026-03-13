@@ -11,7 +11,7 @@ interface LicitacaoCardProps {
   modality: string;
   linkDownloadEdital?: string;
   estimatedValue: string;
-  openingDate: string;
+  openingDate?: string;
   publishDate: string;
   modoDisputa: ModoDisputa;
   onOpenDetails?: () => void;
@@ -32,6 +32,7 @@ export function LicitacaoCard({
 }: LicitacaoCardProps) {
   const hasDownloadLink =
     typeof linkDownloadEdital === 'string' && linkDownloadEdital.trim().length > 0;
+  const hasOpeningDate = typeof openingDate === 'string' && openingDate.trim().length > 0;
 
   const modoDisputaConfig: Record<ModoDisputa, { label: string; color: string }> = {
     aberto: {
@@ -55,7 +56,7 @@ export function LicitacaoCard({
         'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 rounded-full',
     },
     'nao-se-aplica': {
-      label: 'Não se aplica',
+      label: 'Nao se aplica',
       color:
         'bg-slate-100 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 rounded-full',
     },
@@ -105,9 +106,9 @@ export function LicitacaoCard({
         {/* Organization */}
         <div className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">{organization}</div>
 
-        {/* Objeto da Licitação section */}
+        {/* Objeto da Licitacao section */}
         <div className="space-y-2">
-          <div className="text-xs font-medium text-[#6B7280] dark:text-[#9CA3AF]">Objeto da Licitação</div>
+          <div className="text-xs font-medium text-[#6B7280] dark:text-[#9CA3AF]">Objeto da Licitacao</div>
           <div className="text-sm text-[#111827] dark:text-[#F7F8FA]">{title}</div>
         </div>
 
@@ -117,12 +118,15 @@ export function LicitacaoCard({
             <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Valor estimado</div>
             <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{estimatedValue}</div>
           </div>
+          {hasOpeningDate && (
+            <div>
+              <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Abertura das propostas</div>
+              <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{openingDate}</div>
+            </div>
+          )}
+          {!hasOpeningDate && <div aria-hidden="true"></div>}
           <div>
-            <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Abertura das propostas</div>
-            <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{openingDate}</div>
-          </div>
-          <div>
-            <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Publicação</div>
+            <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Publicacao</div>
             <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{publishDate}</div>
           </div>
         </div>
@@ -150,7 +154,7 @@ export function LicitacaoCard({
               </Button>
             )}
             <Button
-              className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenDetails?.();

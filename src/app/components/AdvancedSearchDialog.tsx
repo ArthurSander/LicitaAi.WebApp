@@ -717,7 +717,7 @@ export function AdvancedSearchDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F]"
+            className="bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F] text-[#111827] dark:text-[#F7F8FA] hover:bg-[#F7F8FA] dark:hover:bg-[#1F1F1F] cursor-pointer"
           >
             Cancelar
           </Button>
@@ -726,7 +726,7 @@ export function AdvancedSearchDialog({
               onSubmit?.();
               onOpenChange(false);
             }}
-            className="bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white"
+            className="bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white cursor-pointer"
           >
             Buscar
           </Button>

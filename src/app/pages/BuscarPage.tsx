@@ -455,7 +455,7 @@ export function BuscarPage() {
             <div className="flex justify-center">
               <Button
                 onClick={handleSearch}
-                className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-8 py-2.5 rounded-lg"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-8 py-2.5 rounded-lg cursor-pointer"
               >
                 Buscar licitações
               </Button>

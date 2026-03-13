@@ -273,7 +273,7 @@ export function FilterSidebar({
           </Button>
           
           <Button
-            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white"
+            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white cursor-pointer"
             onClick={handleHeroSearch}
           >
             <Search className="mr-2 h-4 w-4" />
@@ -625,7 +625,7 @@ export function FilterSidebar({
         {/* Bottom Search Button */}
         <div className="border-t border-[#E6E8EC] dark:border-[#1F1F1F] pt-6">
           <Button
-            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white"
+            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white cursor-pointer"
             onClick={handleHeroSearch}
           >
             <Search className="mr-2 h-4 w-4" />
