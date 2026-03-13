@@ -1,6 +1,4 @@
 import { Header } from '../components/Header';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
 import {
   Select,
   SelectContent,
@@ -8,13 +6,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { OpportunityCard } from '../components/OpportunityCard';
-import { X, Bookmark } from 'lucide-react';
+import { LicitacaoCard } from '../components/LicitacaoCard';
+import { Bookmark } from 'lucide-react';
 import { useState } from 'react';
 import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
-import { OpportunityModal } from '../components/OpportunityModal';
+import { LicitacaoModal } from '../components/LicitacaoModal';
 
-const mockSavedOpportunities = [
+const mockSavedLicitacoes = [
   {
     id: 1,
     title: 'AquisiÃ§Ã£o de equipamentos de informÃ¡tica para unidades administrativas',
@@ -56,7 +54,7 @@ const mockSavedOpportunities = [
   },
 ];
 
-export function SavedOpportunitiesPage() {
+export function SavedLicitacoesPage() {
   const [selectedLicitacao, setSelectedLicitacao] = useState<Licitacao | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -85,7 +83,8 @@ export function SavedOpportunitiesPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[#111827] dark:text-[#F7F8FA]">
-                {mockSavedOpportunities.length} oportunidade{mockSavedOpportunities.length !== 1 ? 's' : ''} salva{mockSavedOpportunities.length !== 1 ? 's' : ''}
+                {mockSavedLicitacoes.length}{' '}
+                {mockSavedLicitacoes.length === 1 ? 'licitação salva' : 'licitações salvas'}
               </h2>
               <Select defaultValue="recent">
                 <SelectTrigger className="w-[180px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
@@ -102,33 +101,33 @@ export function SavedOpportunitiesPage() {
             </div>
           </div>
 
-          {/* Opportunity cards */}
-          {mockSavedOpportunities.length > 0 ? (
+          {/* Licitacao cards */}
+          {mockSavedLicitacoes.length > 0 ? (
             <div className="space-y-4">
-              {mockSavedOpportunities.map((opportunity) => (
-                <OpportunityCard
-                  key={opportunity.id}
-                  {...opportunity}
+              {mockSavedLicitacoes.map((licitacaoSalva) => (
+                <LicitacaoCard
+                  key={licitacaoSalva.id}
+                  {...licitacaoSalva}
                   onOpenDetails={() => {
                     const licitacao: Licitacao = {
-                      id: String(opportunity.id),
-                      objeto: opportunity.title,
-                      orgao: opportunity.organization,
+                      id: String(licitacaoSalva.id),
+                      objeto: licitacaoSalva.title,
+                      orgao: licitacaoSalva.organization,
                       cidade: {
-                        id: `${opportunity.state}-${opportunity.city}`,
-                        nome: opportunity.city,
-                        codigoEstado: opportunity.state,
+                        id: `${licitacaoSalva.state}-${licitacaoSalva.city}`,
+                        nome: licitacaoSalva.city,
+                        codigoEstado: licitacaoSalva.state,
                       },
-                      estado: { codigo: opportunity.state, nome: opportunity.state },
+                      estado: { codigo: licitacaoSalva.state, nome: licitacaoSalva.state },
                       modalidade: {
-                        codigo: opportunity.modality.toLowerCase().replace(/\s+/g, '-'),
-                        nome: opportunity.modality,
+                        codigo: licitacaoSalva.modality.toLowerCase().replace(/\s+/g, '-'),
+                        nome: licitacaoSalva.modality,
                       },
                       dataPublicacao: new Date(2026, 2, 1),
                       dataAberturaProposta: new Date(2026, 2, 15),
                       portal: { id: 'saved', nome: 'Salvas' },
                       valorEstimado: undefined,
-                      modoDisputa: opportunity.modoDisputa,
+                      modoDisputa: licitacaoSalva.modoDisputa,
                       linkDownloadEdital: '#',
                       linkSiteEdital: '#',
                     };
@@ -152,7 +151,7 @@ export function SavedOpportunitiesPage() {
           )}
 
           {selectedLicitacao && (
-            <OpportunityModal
+            <LicitacaoModal
               open={isModalOpen}
               onClose={() => setIsModalOpen(false)}
               licitacao={selectedLicitacao}
@@ -163,3 +162,4 @@ export function SavedOpportunitiesPage() {
     </div>
   );
 }
+

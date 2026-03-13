@@ -1,7 +1,7 @@
 import { createBrowserRouter, redirect } from 'react-router';
 import { BuscarPage } from './pages/BuscarPage';
 import { ResultsPage } from './pages/ResultsPage';
-import { SavedOpportunitiesPage } from './pages/SavedOpportunitiesPage';
+import { SavedLicitacoesPage } from './pages/SavedLicitacoesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'licitacoes-salvas',
-        element: <SavedOpportunitiesPage />,
+        element: <SavedLicitacoesPage />,
       },
       {
         path: '*',

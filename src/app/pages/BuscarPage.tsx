@@ -182,7 +182,7 @@ export function BuscarPage() {
         <div className="pt-16 pb-12">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h1 className="text-[40px] font-semibold text-[#111827] dark:text-[#F7F8FA] mb-4 leading-tight">
-              Encontre oportunidades de licitação
+              Encontre licitações
             </h1>
             <p className="text-lg text-[#6B7280] dark:text-[#9CA3AF]">
               Busque e monitore licitações públicas de forma simples e eficiente
@@ -457,7 +457,7 @@ export function BuscarPage() {
                 onClick={handleSearch}
                 className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-8 py-2.5 rounded-lg"
               >
-                Buscar oportunidades
+                Buscar licitações
               </Button>
             </div>
           </div>

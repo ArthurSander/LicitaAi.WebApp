@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import type { ModoDisputa } from '../../types/BuscaLicitacoes/ModoDisputa';
 
-interface OpportunityCardProps {
+interface LicitacaoCardProps {
   title: string;
   organization: string;
   city: string;
@@ -17,7 +17,7 @@ interface OpportunityCardProps {
   onOpenDetails?: () => void;
 }
 
-export function OpportunityCard({
+export function LicitacaoCard({
   title,
   organization,
   city,
@@ -29,7 +29,7 @@ export function OpportunityCard({
   publishDate,
   modoDisputa,
   onOpenDetails,
-}: OpportunityCardProps) {
+}: LicitacaoCardProps) {
   const hasDownloadLink =
     typeof linkDownloadEdital === 'string' && linkDownloadEdital.trim().length > 0;
 

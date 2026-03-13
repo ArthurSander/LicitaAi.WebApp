@@ -6,7 +6,7 @@ import { useItensLicitacao } from '../hooks/useItensLicitacao';
 import { useArquivosLicitacao } from '../hooks/useArquivosLicitacao';
 import { Skeleton } from './ui/skeleton';
 
-interface OpportunityModalProps {
+interface LicitacaoModalProps {
   open: boolean;
   onClose: () => void;
   licitacao: Licitacao;
@@ -21,7 +21,7 @@ function formatBRL(value: number | undefined) {
   }).format(value);
 }
 
-export function OpportunityModal({ open, onClose, licitacao }: OpportunityModalProps) {
+export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps) {
   const { items: itens, isLoading: isLoadingItens } = useItensLicitacao({
     licitacaoId: licitacao.id,
     enabled: open,

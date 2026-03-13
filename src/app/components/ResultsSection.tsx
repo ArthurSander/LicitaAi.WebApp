@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { OpportunityCard } from './OpportunityCard';
+import { LicitacaoCard } from './LicitacaoCard';
 import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,7 +19,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useEstados } from '../hooks/useEstados';
 import { useCidades } from '../hooks/useCidades';
 import { useModalidades } from '../hooks/useModalidades';
-import { OpportunityModal } from './OpportunityModal';
+import { LicitacaoModal } from './LicitacaoModal';
 import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
 import { Skeleton } from './ui/skeleton';
 
@@ -302,8 +302,8 @@ export function ResultsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[#111827] dark:text-[#F7F8FA]">
             {isLoading
-              ? 'Carregando oportunidades...'
-              : `${totalCount.toLocaleString('pt-BR')} oportunidades encontradas`}
+              ? 'Carregando licitações...'
+              : `${totalCount.toLocaleString('pt-BR')} licitações encontradas`}
           </h2>
           <div className="flex items-center gap-3">
             <Select
@@ -374,13 +374,13 @@ export function ResultsSection({
         </div>
       </div>
 
-      {/* Opportunity cards */}
+      {/* Licitacao cards */}
       {isLoading ? (
         renderLoadingCards()
       ) : (
         <div className="space-y-4">
           {items.map((licitacao) => (
-            <OpportunityCard
+            <LicitacaoCard
               key={licitacao.id}
               title={licitacao.objeto}
               organization={licitacao.orgao}
@@ -424,7 +424,7 @@ export function ResultsSection({
       </div>
 
       {selectedLicitacao && (
-        <OpportunityModal
+        <LicitacaoModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           licitacao={selectedLicitacao}
