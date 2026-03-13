@@ -76,6 +76,17 @@ export function ResultsSection({
     setPage(1);
   }, [orderBy]);
 
+  const applyFilterChange = (
+    updater: (current: LicitacaoFilterData) => LicitacaoFilterData,
+  ) => {
+    const nextFilterData = updater(displayedFilterData);
+    if (onSearch) {
+      onSearch(nextFilterData);
+      return;
+    }
+    setFilterData(nextFilterData);
+  };
+
   const activeFilterBadges = useMemo(() => {
     const badges: Array<{ key: string; label: string; onRemove: () => void }> = [];
 
@@ -87,7 +98,7 @@ export function ResultsSection({
         key: `include:${trimmed}`,
         label: trimmed,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             IncludeKeywords: prev.IncludeKeywords.filter((k) => k !== kw),
           })),
@@ -101,7 +112,7 @@ export function ResultsSection({
         key: `exclude:${trimmed}`,
         label: `-${trimmed}`,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             ExcludeKeywords: prev.ExcludeKeywords.filter((k) => k !== kw),
           })),
@@ -114,7 +125,7 @@ export function ResultsSection({
         key: `portal:${portal.id}`,
         label: portal.nome,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             Portals: prev.Portals.filter((p) => p.id !== portal.id),
           })),
@@ -129,7 +140,7 @@ export function ResultsSection({
       badges.push({
         key: `modality:${displayedFilterData.ModalityId}`,
         label: modLabel,
-        onRemove: () => setFilterData((prev) => ({ ...prev, ModalityId: '' })),
+        onRemove: () => applyFilterChange((prev) => ({ ...prev, ModalityId: '' })),
       });
     }
 
@@ -140,7 +151,7 @@ export function ResultsSection({
         key: `state:${code}`,
         label,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             StateCodes: prev.StateCodes.filter((c) => c !== code),
           })),
@@ -154,7 +165,7 @@ export function ResultsSection({
         key: `city:${cityId}`,
         label,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             CityIds: prev.CityIds.filter((id) => id !== cityId),
           })),
@@ -167,7 +178,7 @@ export function ResultsSection({
         key: `gov:${level}`,
         label: level,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             GovernmentLevels: prev.GovernmentLevels.filter((g) => g !== level),
           })),
@@ -194,7 +205,7 @@ export function ResultsSection({
         key: `opening:${displayedFilterData.OpeningDateFilter}:${displayedFilterData.OpeningDateStart?.toISOString() ?? ''}:${displayedFilterData.OpeningDateEnd?.toISOString() ?? ''}`,
         label,
         onRemove: () =>
-          setFilterData((prev) => ({
+          applyFilterChange((prev) => ({
             ...prev,
             OpeningDateFilter: 'any',
             OpeningDateStart: undefined,
@@ -218,7 +229,7 @@ export function ResultsSection({
     estados,
     displayedFilterData,
     modalidades,
-    setFilterData,
+    applyFilterChange,
   ]);
 
   const renderLoadingCards = () => (
