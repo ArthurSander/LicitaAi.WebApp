@@ -1,6 +1,7 @@
-import { X, Download } from 'lucide-react';
+import { X, Download, Search } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
+import { useEffect, useMemo, useState } from 'react';
 import type { Licitacao } from '../../types/BuscaLicitacoes/Licitacao';
 import { useItensLicitacao } from '../hooks/useItensLicitacao';
 import { useArquivosLicitacao } from '../hooks/useArquivosLicitacao';
@@ -22,6 +23,9 @@ function formatBRL(value: number | undefined) {
 }
 
 export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps) {
+  const [itemFilterText, setItemFilterText] = useState('');
+  const [arquivoFilterText, setArquivoFilterText] = useState('');
+
   const { items: itens, isLoading: isLoadingItens } = useItensLicitacao({
     licitacaoId: licitacao.id,
     enabled: open,
@@ -31,6 +35,24 @@ export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps
     licitacaoId: licitacao.id,
     enabled: open,
   });
+
+  useEffect(() => {
+    if (!open) return;
+    setItemFilterText('');
+    setArquivoFilterText('');
+  }, [open, licitacao.id]);
+
+  const filteredItens = useMemo(() => {
+    const query = itemFilterText.trim().toLowerCase();
+    if (!query) return itens;
+    return itens.filter((item) => item.descricao.toLowerCase().includes(query));
+  }, [itens, itemFilterText]);
+
+  const filteredArquivos = useMemo(() => {
+    const query = arquivoFilterText.trim().toLowerCase();
+    if (!query) return arquivos;
+    return arquivos.filter((file) => file.titulo.toLowerCase().includes(query));
+  }, [arquivos, arquivoFilterText]);
 
   return (
     <Dialog.Root
@@ -82,6 +104,17 @@ export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps
 
             {/* Itens Tab */}
             <Tabs.Content value="itens" className="flex-1 min-h-0 overflow-y-auto p-6">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] dark:text-[#6B7280]" />
+                <input
+                  type="text"
+                  value={itemFilterText}
+                  onChange={(e) => setItemFilterText(e.target.value)}
+                  placeholder="Filtrar itens por texto..."
+                  className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                />
+              </div>
+
               {isLoadingItens ? (
                 <div className="space-y-3">
                   {Array.from({ length: 4 }).map((_, index) => (
@@ -107,11 +140,13 @@ export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps
                     </div>
                   ))}
                 </div>
-              ) : itens.length === 0 ? (
-                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Nenhum item encontrado.</p>
+              ) : filteredItens.length === 0 ? (
+                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+                  Nenhum item encontrado para o filtro informado.
+                </p>
               ) : (
                 <div className="space-y-3">
-                  {itens.map((item) => (
+                  {filteredItens.map((item) => (
                     <div
                       key={item.id}
                       className="bg-[#F7F8FA] dark:bg-[#1F1F1F] border border-[#E6E8EC] dark:border-[#2A2A2A] rounded-lg p-4 hover:border-[#D1D5DB] dark:hover:border-[#3A3A3A] transition-colors"
@@ -143,6 +178,17 @@ export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps
 
             {/* Arquivos Tab */}
             <Tabs.Content value="arquivos" className="flex-1 min-h-0 overflow-y-auto p-6">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] dark:text-[#6B7280]" />
+                <input
+                  type="text"
+                  value={arquivoFilterText}
+                  onChange={(e) => setArquivoFilterText(e.target.value)}
+                  placeholder="Filtrar arquivos por texto..."
+                  className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#111111] border border-[#E6E8EC] dark:border-[#1F1F1F] rounded-lg text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A] focus:border-transparent"
+                />
+              </div>
+
               {isLoadingArquivos ? (
                 <div className="space-y-3">
                   {Array.from({ length: 5 }).map((_, index) => (
@@ -155,11 +201,13 @@ export function LicitacaoModal({ open, onClose, licitacao }: LicitacaoModalProps
                     </div>
                   ))}
                 </div>
-              ) : arquivos.length === 0 ? (
-                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Nenhum arquivo encontrado.</p>
+              ) : filteredArquivos.length === 0 ? (
+                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+                  Nenhum arquivo encontrado para o filtro informado.
+                </p>
               ) : (
                 <div className="space-y-3">
-                  {arquivos.map((file) => (
+                  {filteredArquivos.map((file) => (
                     <div
                       key={file.id}
                       className="bg-[#F7F8FA] dark:bg-[#1F1F1F] border border-[#E6E8EC] dark:border-[#2A2A2A] rounded-lg p-4 flex items-center justify-between hover:border-[#D1D5DB] dark:hover:border-[#3A3A3A] transition-colors"
