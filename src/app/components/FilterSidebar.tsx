@@ -12,6 +12,7 @@ import { Switch } from './ui/switch';
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { AlertTriangle, CalendarIcon, Search, ChevronDown, X, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -37,6 +38,71 @@ function FilterListSkeleton({ rows = 5 }: { rows?: number }) {
       ))}
     </div>
   );
+}
+
+function parseFilterJson(input: string): LicitacaoFilterData {
+  const parsed = JSON.parse(input) as Partial<LicitacaoFilterData> & {
+    OpeningDateStart?: string | Date;
+    OpeningDateEnd?: string | Date;
+  };
+
+  const asStringArray = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+  const asDate = (value: unknown): Date | undefined => {
+    if (!value) return undefined;
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+    if (typeof value === 'string' || typeof value === 'number') {
+      const parsedDate = new Date(value);
+      return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+    }
+    return undefined;
+  };
+
+  const allowedOpeningDateFilters = new Set<LicitacaoFilterData['OpeningDateFilter']>([
+    'any',
+    'today',
+    'current-week',
+    'current-month',
+    'custom-period',
+  ]);
+
+  const openingDateFilter = allowedOpeningDateFilters.has(
+    parsed.OpeningDateFilter as LicitacaoFilterData['OpeningDateFilter'],
+  )
+    ? (parsed.OpeningDateFilter as LicitacaoFilterData['OpeningDateFilter'])
+    : 'any';
+
+  const normalized: LicitacaoFilterData = {
+    ...defaultLicitacaoFilterData,
+    IncludeKeywords: asStringArray(parsed.IncludeKeywords),
+    ExcludeKeywords: asStringArray(parsed.ExcludeKeywords),
+    OpeningDateFilter: openingDateFilter,
+    OpeningDateStart: asDate(parsed.OpeningDateStart),
+    OpeningDateEnd: asDate(parsed.OpeningDateEnd),
+    ModalityId: typeof parsed.ModalityId === 'string' ? parsed.ModalityId : '',
+    StateCodes: asStringArray(parsed.StateCodes),
+    CityIds: asStringArray(parsed.CityIds),
+    GovernmentLevels: asStringArray(parsed.GovernmentLevels),
+    Portals: Array.isArray(parsed.Portals)
+      ? parsed.Portals
+          .filter(
+            (portal): portal is { id: string; nome: string } =>
+              typeof portal === 'object' &&
+              portal !== null &&
+              typeof (portal as { id?: unknown }).id === 'string' &&
+              typeof (portal as { nome?: unknown }).nome === 'string',
+          )
+          .map((portal) => ({ id: portal.id, nome: portal.nome }))
+      : [],
+  };
+
+  if (normalized.OpeningDateFilter !== 'custom-period') {
+    normalized.OpeningDateStart = undefined;
+    normalized.OpeningDateEnd = undefined;
+  }
+
+  return normalized;
 }
 
 export function FilterSidebar({
@@ -70,6 +136,10 @@ export function FilterSidebar({
   const [estadoSearchQuery, setEstadoSearchQuery] = useState('');
   const [cidadeSearchQuery, setCidadeSearchQuery] = useState('');
   const [portalSearchQuery, setPortalSearchQuery] = useState('');
+  const [pasteModalOpen, setPasteModalOpen] = useState(false);
+  const [pastedFilterJson, setPastedFilterJson] = useState('');
+  const [pasteError, setPasteError] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState('');
 
   const hasSelectedStates = filterData.StateCodes.length > 0;
 
@@ -233,6 +303,53 @@ export function FilterSidebar({
     onSearch?.(nextFilterData);
   };
 
+  const getFilterSnapshot = () => {
+    if (isAdvancedKeywordSearchActive) return filterData;
+    const trimmed = searchQuery.trim();
+    return {
+      ...filterData,
+      IncludeKeywords: trimmed ? [trimmed] : [],
+    };
+  };
+
+  const handleCopyFilter = async () => {
+    const snapshot = getFilterSnapshot();
+    const json = JSON.stringify(snapshot, null, 2);
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(json);
+      } else {
+        const fallback = document.createElement('textarea');
+        fallback.value = json;
+        fallback.style.position = 'fixed';
+        fallback.style.opacity = '0';
+        document.body.appendChild(fallback);
+        fallback.focus();
+        fallback.select();
+        document.execCommand('copy');
+        document.body.removeChild(fallback);
+      }
+      setCopyFeedback('Filtro copiado.');
+    } catch {
+      setCopyFeedback('Nao foi possivel copiar o filtro.');
+    }
+
+    setTimeout(() => setCopyFeedback(''), 2500);
+  };
+
+  const handleApplyPastedFilter = () => {
+    try {
+      const nextFilterData = parseFilterJson(pastedFilterJson);
+      setFilterData(nextFilterData);
+      onSearch?.(nextFilterData);
+      setPasteError('');
+      setPasteModalOpen(false);
+    } catch {
+      setPasteError('JSON invalido. Cole um filtro no formato correto.');
+    }
+  };
+
   return (
     <aside className="w-[280px] shrink-0 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 hide-scrollbar">
       <div className="space-y-6">
@@ -279,6 +396,33 @@ export function FilterSidebar({
             <Search className="mr-2 h-4 w-4" />
             Buscar
           </Button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+              onClick={handleCopyFilter}
+            >
+              Copiar Filtro
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]"
+              onClick={() => {
+                setPastedFilterJson('');
+                setPasteError('');
+                setPasteModalOpen(true);
+              }}
+            >
+              Colar Filtro
+            </Button>
+          </div>
+
+          {copyFeedback ? (
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">{copyFeedback}</p>
+          ) : null}
         </div>
 
         <div className="border-t border-[#E6E8EC] dark:border-[#1F1F1F] pt-6"></div>
@@ -357,11 +501,11 @@ export function FilterSidebar({
         <div className="space-y-3">
           <Label className="text-sm text-[#111827] dark:text-[#F7F8FA]">Modalidade</Label>
           <Select
-            value={filterData.ModalityId || undefined}
+            value={filterData.ModalityId || 'all'}
             onValueChange={(value) => {
               setFilterData((prev) => ({
                 ...prev,
-                ModalityId: value,
+                ModalityId: value === 'all' ? '' : value,
               }));
             }}
           >
@@ -376,11 +520,14 @@ export function FilterSidebar({
                   <Skeleton className="h-4 w-44" />
                 </div>
               ) : (
-                modalidades.map((m) => (
-                  <SelectItem key={m.codigo} value={m.codigo}>
-                    {m.nome}
-                  </SelectItem>
-                ))
+                <>
+                  <SelectItem value="all">Todas as modalidades</SelectItem>
+                  {modalidades.map((m) => (
+                    <SelectItem key={m.codigo} value={m.codigo}>
+                      {m.nome}
+                    </SelectItem>
+                  ))}
+                </>
               )}
             </SelectContent>
           </Select>
@@ -642,6 +789,48 @@ export function FilterSidebar({
           setFilterData={setFilterData}
           onSubmit={() => onSearch?.(filterData)}
         />
+
+        <Dialog open={pasteModalOpen} onOpenChange={setPasteModalOpen}>
+          <DialogContent className="sm:max-w-[640px] bg-white dark:bg-[#111111] border-[#E6E8EC] dark:border-[#1F1F1F]">
+            <DialogHeader>
+              <DialogTitle>Colar Filtro</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-2">
+              <Label htmlFor="paste-filter-json" className="text-sm text-[#111827] dark:text-[#F7F8FA]">
+                Cole o JSON do filtro
+              </Label>
+              <textarea
+                id="paste-filter-json"
+                value={pastedFilterJson}
+                onChange={(e) => setPastedFilterJson(e.target.value)}
+                placeholder='{"IncludeKeywords":["transporte"],"...":"..."}'
+                className="min-h-[220px] w-full rounded-md border border-[#E6E8EC] dark:border-[#1F1F1F] bg-white dark:bg-[#111111] px-3 py-2 text-sm text-[#111827] dark:text-[#F7F8FA] placeholder:text-[#9CA3AF] dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB] dark:focus:ring-[#1E3A8A]"
+              />
+              {pasteError ? (
+                <p className="text-xs text-[#DC2626] dark:text-[#F87171]">{pasteError}</p>
+              ) : null}
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setPasteModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="bg-[#2563EB] hover:bg-[#1E40AF] dark:bg-[#1E3A8A] dark:hover:bg-[#1E3A8A]/80 text-white cursor-pointer"
+                onClick={handleApplyPastedFilter}
+              >
+                Aplicar Filtro
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </aside>
   );

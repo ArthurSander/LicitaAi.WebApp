@@ -443,11 +443,11 @@ export function AdvancedSearchDialog({
               Modalidade
             </Label>
             <Select
-              value={filterData.ModalityId || undefined}
+              value={filterData.ModalityId || "all"}
               onValueChange={(value) => {
                 setFilterData({
                   ...filterData,
-                  ModalityId: value,
+                  ModalityId: value === "all" ? "" : value,
                 });
               }}
             >
@@ -462,11 +462,14 @@ export function AdvancedSearchDialog({
                     <Skeleton className="h-4 w-44" />
                   </div>
                 ) : (
-                  modalidades.map((m) => (
-                    <SelectItem key={m.codigo} value={m.codigo}>
-                      {m.nome}
-                    </SelectItem>
-                  ))
+                  <>
+                    <SelectItem value="all">Todas as modalidades</SelectItem>
+                    {modalidades.map((m) => (
+                      <SelectItem key={m.codigo} value={m.codigo}>
+                        {m.nome}
+                      </SelectItem>
+                    ))}
+                  </>
                 )}
               </SelectContent>
             </Select>

@@ -25,5 +25,5 @@ export const defaultLicitacaoFilterData: LicitacaoFilterData = {
   ModalityId: "",
   StateCodes: [],
   CityIds: [],
-  GovernmentLevels: [],
+  GovernmentLevels: ["municipal", "estadual", "federal"],
 };

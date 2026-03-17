@@ -282,7 +282,6 @@ export function ResultsSection({
       Portals: [],
       StateCodes: [],
       CityIds: [],
-      GovernmentLevels: [],
       ModalityId: '',
       OpeningDateStart: undefined,
       OpeningDateEnd: undefined,
