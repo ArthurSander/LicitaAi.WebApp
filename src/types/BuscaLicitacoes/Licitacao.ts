@@ -13,6 +13,7 @@ export type Licitacao = {
     cidade: Cidade
     dataPublicacao: Date
     dataAberturaProposta?: Date
+    dataFechamentoProposta?: Date
     portal: Portal
     valorEstimado?: number
     modoDisputa?: ModoDisputa

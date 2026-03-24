@@ -133,6 +133,7 @@ function mapSearchItem(raw: unknown): Licitacao | null {
     },
     dataPublicacao: toDateOrUndefined(obj.dataPublicacaoOrigem) ?? new Date(0),
     dataAberturaProposta: shouldHideOpeningDate ? undefined : dataAberturaProposta,
+    dataFechamentoProposta: shouldHideOpeningDate ? undefined : dataEncerramento,
     portal: {
       id: "nao-informado",
       nome: "Não informado",

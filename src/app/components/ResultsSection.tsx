@@ -32,6 +32,47 @@ function formatBRL(value: number | undefined) {
   }).format(value);
 }
 
+function getProposalCountdownBadge(
+  openingDate: Date | undefined,
+  closingDate: Date | undefined,
+):
+  | {
+      text: string;
+      tone: 'open-soon' | 'open-today' | 'close-soon' | 'close-today';
+    }
+  | undefined {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const getDiffDays = (date: Date) => {
+    const targetStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    return Math.ceil((targetStart - todayStart) / (1000 * 60 * 60 * 24));
+  };
+
+  const openingDiff = openingDate ? getDiffDays(openingDate) : undefined;
+  if (openingDiff != null && openingDiff >= 0) {
+    if (openingDiff === 0) {
+      return { text: 'Abre hoje', tone: 'open-today' };
+    }
+    return {
+      text: `Abre em ${openingDiff} dia${openingDiff > 1 ? 's' : ''}`,
+      tone: 'open-soon',
+    };
+  }
+
+  const closingDiff = closingDate ? getDiffDays(closingDate) : undefined;
+  if (closingDiff != null && closingDiff >= 0) {
+    if (closingDiff === 0) {
+      return { text: 'Fecha hoje', tone: 'close-today' };
+    }
+    return {
+      text: `Fecha em ${closingDiff} dia${closingDiff > 1 ? 's' : ''}`,
+      tone: 'close-soon',
+    };
+  }
+
+  return undefined;
+}
+
 export function ResultsSection({
   filterData,
   setFilterData,
@@ -377,6 +418,12 @@ export function ResultsSection({
       ) : (
         <div className="space-y-4">
           {items.map((licitacao) => (
+            (() => {
+              const proposalCountdown = getProposalCountdownBadge(
+                licitacao.dataAberturaProposta,
+                licitacao.dataFechamentoProposta,
+              );
+              return (
             <LicitacaoCard
               key={licitacao.id}
               title={licitacao.objeto}
@@ -391,6 +438,13 @@ export function ResultsSection({
                   ? format(licitacao.dataAberturaProposta, 'dd MMM yyyy', { locale: ptBR })
                   : undefined
               }
+              closingDate={
+                licitacao.dataFechamentoProposta
+                  ? format(licitacao.dataFechamentoProposta, 'dd MMM yyyy', { locale: ptBR })
+                  : undefined
+              }
+              proposalCountdownBadge={proposalCountdown?.text}
+              proposalCountdownTone={proposalCountdown?.tone}
               publishDate={format(licitacao.dataPublicacao, 'dd MMM yyyy', { locale: ptBR })}
               modoDisputa={licitacao.modoDisputa ?? 'aberto'}
               onOpenDetails={() => {
@@ -398,6 +452,8 @@ export function ResultsSection({
                 setIsModalOpen(true);
               }}
             />
+              );
+            })()
           ))}
         </div>
       )}

@@ -12,6 +12,9 @@ interface LicitacaoCardProps {
   linkDownloadEdital?: string;
   estimatedValue: string;
   openingDate?: string;
+  closingDate?: string;
+  proposalCountdownBadge?: string;
+  proposalCountdownTone?: 'open-soon' | 'open-today' | 'close-soon' | 'close-today';
   publishDate: string;
   modoDisputa: ModoDisputa;
   onOpenDetails?: () => void;
@@ -26,6 +29,9 @@ export function LicitacaoCard({
   linkDownloadEdital,
   estimatedValue,
   openingDate,
+  closingDate,
+  proposalCountdownBadge,
+  proposalCountdownTone,
   publishDate,
   modoDisputa,
   onOpenDetails,
@@ -33,6 +39,7 @@ export function LicitacaoCard({
   const hasDownloadLink =
     typeof linkDownloadEdital === 'string' && linkDownloadEdital.trim().length > 0;
   const hasOpeningDate = typeof openingDate === 'string' && openingDate.trim().length > 0;
+  const hasClosingDate = typeof closingDate === 'string' && closingDate.trim().length > 0;
 
   const modoDisputaConfig: Record<ModoDisputa, { label: string; color: string }> = {
     aberto: {
@@ -65,6 +72,20 @@ export function LicitacaoCard({
       color:
         'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 rounded-full',
     },
+  };
+
+  const proposalCountdownToneClassMap: Record<
+    NonNullable<LicitacaoCardProps['proposalCountdownTone']>,
+    string
+  > = {
+    'open-soon':
+      'bg-lime-100 dark:bg-lime-900/30 text-lime-800 dark:text-lime-300 border-lime-300 dark:border-lime-700 rounded-full',
+    'open-today':
+      'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 rounded-full',
+    'close-soon':
+      'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 rounded-full',
+    'close-today':
+      'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700 rounded-full',
   };
 
   return (
@@ -100,6 +121,18 @@ export function LicitacaoCard({
             >
               {modoDisputaConfig[modoDisputa].label}
             </Badge>
+            {proposalCountdownBadge ? (
+              <Badge
+                variant="outline"
+                className={
+                  proposalCountdownTone
+                    ? proposalCountdownToneClassMap[proposalCountdownTone]
+                    : proposalCountdownToneClassMap['close-soon']
+                }
+              >
+                {proposalCountdownBadge}
+              </Badge>
+            ) : null}
           </div>
         </div>
 
@@ -113,7 +146,7 @@ export function LicitacaoCard({
         </div>
 
         {/* Information section */}
-        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#E6E8EC] dark:border-[#1F1F1F]">
+        <div className="grid grid-cols-4 gap-4 pt-4 border-t border-[#E6E8EC] dark:border-[#1F1F1F]">
           <div>
             <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Valor estimado</div>
             <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{estimatedValue}</div>
@@ -125,6 +158,13 @@ export function LicitacaoCard({
             </div>
           )}
           {!hasOpeningDate && <div aria-hidden="true"></div>}
+          {hasClosingDate && (
+            <div>
+              <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Fechamento das propostas</div>
+              <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{closingDate}</div>
+            </div>
+          )}
+          {!hasClosingDate && <div aria-hidden="true"></div>}
           <div>
             <div className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-1">Publicacao</div>
             <div className="text-sm text-[#111827] dark:text-[#F7F8FA] font-medium">{publishDate}</div>
